@@ -3,56 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Study Task Tracker</title>
+  <title>Academic Task Manager - Professional Study Tracking</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <header class="site-header">
-    <h1>📚 Study Task Tracker</h1>
-    
-    //Added mutiple themes 
-  <select id="themeSwitcher" class="theme-dropdown">
-  <option value="light">🌞 Light</option>
-  <option value="dark">🌙 Dark</option>
-  <option value="blue">🩵 Blue</option>
-  <option value="pastel">🎀 Pastel</option>
-</select>
-    
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Academic Task Manager</h1>
+        <p class="header-subtitle">Professional Study & Task Tracking</p>
+      </div>
+      <select id="themeSwitcher" class="theme-dropdown">
+        <option value="professional">Professional</option>
+        <option value="elegant">Elegant</option>
+        <option value="modern">Modern</option>
+        <option value="minimal">Minimal</option>
+      </select>
+    </div>
   </header>
 
   <main id="main-content" class="container">
-    <form id="taskForm" onsubmit="event.preventDefault(); addTask();">
-      <label for="taskInput">Task description</label>
-      <input type="text" id="taskInput" placeholder="Enter task" aria-describedby="taskHelp">
-      <button type="submit">Add</button>
-      <p id="taskHelp" class="sr-only">Enter a task and press Add to track your study items.</p>
-    </form>
+    <div class="form-section">
+      <form id="taskForm" onsubmit="event.preventDefault(); addTask();">
+        <div class="form-group">
+          <label for="taskInput">Add New Task</label>
+          <div class="input-wrapper">
+            <input type="text" id="taskInput" placeholder="Enter task description..." aria-describedby="taskHelp">
+            <button type="submit" class="btn-primary">Add Task</button>
+          </div>
+          <p id="taskHelp" class="sr-only">Enter a task and press Add to track your study items.</p>
+        </div>
+      </form>
+      <p id="errorMsg" class="error-message" role="alert"></p>
+    </div>
 
-    <p id="errorMsg" class="error" role="alert"></p>
+    <div class="tasks-section">
+      <div class="section-header">
+        <h2>Your Tasks</h2>
+        <p id="taskStats" class="stats-badge"></p>
+      </div>
+      <ul id="taskList" aria-live="polite" aria-label="Task list" class="task-list"></ul>
+      
+      <div id="celebration" class="celebration hidden">
+        <div class="celebration-icon">🎉</div>
+        <p>All tasks completed!</p>
+      </div>
 
-    <ul id="taskList" aria-live="polite" aria-label="Task list"></ul>
-    <p id="taskStats"></p>
-
-    <div id="celebration" class="celebration hidden">
-    <img src="task completed image.jpg" alt="Celebration" />
-    <p>All tasks completed! 🎉</p>
-  </div>
-
+      <div id="emptyState" class="empty-state">
+        <p>No tasks yet. Add one to get started!</p>
+      </div>
+    </div>
   </main>
 
   <footer class="site-footer">
-    <nav aria-label="Footer navigation">
-  <a href="#taskInput">Add task</a>
-  <a href="#taskList">View tasks</a>
-  <a href="#main-content">Back to top</a>
-  <a href="privacy.html">Privacy Policy</a>
-  <a href="terms.html">Terms of Service</a>
-      <a href="#main-content">Back to top</a>
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <div class="footer-links">
+        <a href="#taskInput" class="footer-link">Add Task</a>
+        <a href="#taskList" class="footer-link">View Tasks</a>
+        <a href="privacy.html" class="footer-link">Privacy Policy</a>
+        <a href="terms.html" class="footer-link">Terms of Service</a>
+      </div>
     </nav>
-    <p>Accessible study tracking with keyboard support and semantic structure.</p>
-    <p>&copy; 2026 Study Task Tracker</p>
+    <div class="footer-content">
+      <p class="footer-description">Professional academic task tracking with comprehensive keyboard support and semantic structure.</p>
+      <p class="footer-copyright">&copy; 2026 Academic Task Manager. All rights reserved.</p>
+    </div>
   </footer>
 
   <script src="script.js"></script>
