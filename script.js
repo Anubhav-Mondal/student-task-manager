@@ -312,6 +312,35 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("theme", theme);
     }
   }
+ document.addEventListener("DOMContentLoaded", () => {
+  const themeSwitcher = document.getElementById("themeSwitcher");
+
+  function loadTheme() {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setTheme(savedTheme, false);
+  }
+
+  function setTheme(theme, persist = true) {
+    document.documentElement.setAttribute("data-theme", theme);
+
+    if (themeSwitcher) {
+      themeSwitcher.value = theme;
+    }
+
+    if (persist) {
+      localStorage.setItem("theme", theme);
+    }
+  }
+
+  if (themeSwitcher) {
+    themeSwitcher.addEventListener("change", (e) => {
+      setTheme(e.target.value);
+    });
+  }
+
+  loadTheme();
+});
+
 
   function formatTimestamp(date) {
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
