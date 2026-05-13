@@ -69,25 +69,51 @@ function addTask() {
 
 }
 /* =========================
-   MULTI-THEME SWITCHER
+   CUSTOM THEME DROPDOWN
 ========================= */
+const themeDropdown = document.getElementById("themeDropdown");
+const dropdownTrigger = document.getElementById("dropdownTrigger");
+const dropdownMenu = document.getElementById("dropdownMenu");
+const dropdownItems = document.querySelectorAll(".dropdown-item");
 
-const themeSwitcher = document.getElementById("themeSwitcher");
-
-// Load saved theme
+// Load and apply saved theme
 const savedTheme = localStorage.getItem("theme") || "light";
-document.documentElement.setAttribute("data-theme", savedTheme);
+applyTheme(savedTheme);
 
-if (themeSwitcher) {
-  themeSwitcher.value = savedTheme;
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+  
+  // Update trigger UI
+  const selectedItem = document.querySelector(`.dropdown-item[data-value="${theme}"]`);
+  if (selectedItem && dropdownTrigger) {
+    const icon = selectedItem.querySelector(".material-symbols-outlined").textContent;
+    const text = selectedItem.textContent.trim().replace(icon, "").trim();
+    dropdownTrigger.querySelector(".icon").textContent = icon;
+    dropdownTrigger.querySelector(".text").textContent = text;
+  }
+}
 
-  themeSwitcher.addEventListener("change", function (e) {
-    const selectedTheme = e.target.value;
+if (dropdownTrigger) {
+  dropdownTrigger.addEventListener("click", () => {
+    themeDropdown.classList.toggle("active");
+  });
 
-    document.documentElement.setAttribute("data-theme", selectedTheme);
-    localStorage.setItem("theme", selectedTheme);
+  // Close dropdown when clicking outside
+  window.addEventListener("click", (e) => {
+    if (!themeDropdown.contains(e.target)) {
+      themeDropdown.classList.remove("active");
+    }
   });
 }
+
+dropdownItems.forEach(item => {
+  item.addEventListener("click", () => {
+    const theme = item.getAttribute("data-value");
+    applyTheme(theme);
+    themeDropdown.classList.remove("active");
+  });
+});
 
 
 
