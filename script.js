@@ -130,7 +130,7 @@ function taskTracker() {
 const backToTopBtn = document.getElementById("backToTop");
 if (backToTopBtn) {
   window.addEventListener("scroll", () => {
-    if (window.scrollY > 200) {
+    if (window.scrollY > 50) {
       backToTopBtn.classList.add("visible");
     } else {
       backToTopBtn.classList.remove("visible");
