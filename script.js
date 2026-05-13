@@ -32,7 +32,8 @@ function addTask() {
 
 
   const editButton = document.createElement("button");
-    editButton.textContent = "Edit";
+    editButton.innerHTML = '<span class="material-symbols-outlined">edit</span>';
+    editButton.title = "Edit task";
     editButton.addEventListener("click", function () {
       const newTask = prompt("Edit task:", span.textContent);
       if (newTask !== null) {
@@ -43,7 +44,8 @@ function addTask() {
     li.appendChild(timeElement);
     li.appendChild(editButton);
   const removeButton = document.createElement("button");
-  removeButton.textContent = "Remove";
+  removeButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+  removeButton.title = "Remove task";
   removeButton.addEventListener("click", function () {
     li.remove();
 
@@ -109,7 +111,7 @@ function taskTracker() {
 
   const stats = document.getElementById("taskStats");
   if (stats) {
-    stats.innerText = `✅ ${completed.length} / ${tasks.length} completed`;
+    stats.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle; color: #10b981;">check_circle</span> ${completed.length} / ${tasks.length} completed`;
   }
 
   const celebration = document.getElementById("celebration");
