@@ -108,3 +108,4 @@ function taskTracker() {
     celebration.classList.add("hidden");
   }
 }
+const searchInput = document.getElementById(" searchInput\); if (searchInput) { searchInput.addEventListener(\input\, function () { const query = searchInput.value.toLowerCase(); document.querySelectorAll(\#taskList li\).forEach((li) => { const text = li.querySelector(\span\).textContent.toLowerCase(); li.style.display = text.includes(query) ? \flex\ : \none\; }); }); }

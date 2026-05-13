@@ -429,4 +429,4 @@ body {
 /* ✨ Optional glow effect */
 .celebration.show img {
   filter: drop-shadow(0 0 10px gold);
-}
+}.search-container { margin-bottom: 1.5rem; } .search-container input { padding: 0.75rem; border: 1px solid #334155; background: rgba(30, 41, 59, 0.4); color: #e2e8f0; border-radius: 8px; }
