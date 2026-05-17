@@ -98,6 +98,12 @@ function taskTracker() {
   const completed = document.querySelectorAll("#taskList input:checked");
   const stats = document.getElementById("taskStats");
   if (stats) stats.innerText = `✅ ${completed.length} / ${tasks.length} completed`;
+
+  const headerStats = document.getElementById("headerStats");
+  if (headerStats) {
+    const percentage = tasks.length > 0 ? Math.round((completed.length / tasks.length) * 100) : 0;
+    headerStats.innerText = `🎯 ${percentage}%`;
+  }
   
   const celebration = document.getElementById("celebration");
   if (tasks.length > 0 && tasks.length === completed.length) {
@@ -136,3 +142,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// Dynamic Greeting & Live Date Engine
+function updateHeaderGreetingAndDate() {
+  const greetingEl = document.getElementById("headerGreeting");
+  const dateEl = document.getElementById("headerDate");
+  
+  if (!greetingEl && !dateEl) return;
+
+  const now = new Date();
+  const hour = now.getHours();
+  
+  let greetingText = "👋 Focus Time!";
+  if (hour >= 5 && hour < 12) {
+    greetingText = "🌅 Good morning, Student!";
+  } else if (hour >= 12 && hour < 17) {
+    greetingText = "☀️ Good afternoon, Student!";
+  } else if (hour >= 17 && hour < 22) {
+    greetingText = "🌆 Good evening, Student!";
+  } else {
+    greetingText = "🌌 Happy late-night study!";
+  }
+
+  // Format date: e.g. "Sun, May 17"
+  const options = { weekday: 'short', month: 'short', day: 'numeric' };
+  const formattedDate = now.toLocaleDateString('en-US', options);
+
+  if (greetingEl) greetingEl.textContent = greetingText;
+  if (dateEl) dateEl.textContent = formattedDate;
+}
+
+// Initialize greeting and date when page loads
+document.addEventListener("DOMContentLoaded", updateHeaderGreetingAndDate);

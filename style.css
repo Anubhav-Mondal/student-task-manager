@@ -192,6 +192,41 @@ body {
 .header-controls {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+}
+
+/* Glassmorphic task progress badge pill */
+.stats-pill {
+  display: flex;
+  align-items: center;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  cursor: default;
+}
+
+.stats-pill-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stats-pill-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.stats-pill:hover .stats-pill-value {
+  transform: scale(1.1);
 }
 
 /* Glassmorphic theme switcher dropdown pill */
@@ -231,6 +266,13 @@ body {
 .theme-dropdown option {
   background: var(--bg-color);
   color: var(--text-color);
+}
+
+/* Header subtitle dynamic layout elements */
+.subtitle-divider {
+  margin: 0 0.5rem;
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 /* ==========================================================================
@@ -670,9 +712,11 @@ ul#taskList li small {
   .header-controls {
     width: 100%;
     justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
-  .theme-pill {
+  .stats-pill, .theme-pill {
     width: 100%;
     justify-content: space-between;
     padding: 0.45rem 1.25rem;
