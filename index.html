@@ -57,75 +57,101 @@
     </div>
 
     <div class="dashboard-grid">
-      <!-- Left Column: Workspace Card -->
-      <section class="workspace-card glass-card" aria-labelledby="workspace-title">
-        <h2 id="workspace-title" class="sr-only">Study Workspace</h2>
-        
-        <form id="taskForm" onsubmit="event.preventDefault(); addTask();">
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
-            <label for="taskInput">Task Title</label>
-            <input type="text" id="taskInput" placeholder="What are you studying today?" aria-describedby="taskHelp" required>
-          </div>
+      <!-- Left Column: Workspace & Quotes Stack -->
+      <div class="workspace-col" style="display: flex; flex-direction: column; gap: 1.75rem;">
+        <!-- Workspace Card -->
+        <section class="workspace-card glass-card" aria-labelledby="workspace-title">
+          <h2 id="workspace-title" class="sr-only">Study Workspace</h2>
           
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
-            <label for="taskDescInput">Task Description (Optional)</label>
-            <textarea id="taskDescInput" placeholder="Enter details, links, or notes..."></textarea>
-          </div>
+          <form id="taskForm" onsubmit="event.preventDefault(); addTask();">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <label for="taskInput">Task Title</label>
+              <input type="text" id="taskInput" placeholder="What are you studying today?" aria-describedby="taskHelp" required>
+            </div>
+            
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <label for="taskDescInput">Task Description (Optional)</label>
+              <textarea id="taskDescInput" placeholder="Enter details, links, or notes..."></textarea>
+            </div>
+            
+            <div class="form-row">
+              <select id="priorityInput" aria-label="Task Priority">
+                <option value="low">Low Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="high">High Priority</option>
+              </select>
+              <select id="categoryInput" aria-label="Task Category">
+                <option value="general">🌟 General</option>
+                <option value="reading">📚 Reading</option>
+                <option value="homework">✍️ Homework</option>
+                <option value="examprep">🔬 Exam Prep</option>
+                <option value="project">🎨 Project</option>
+              </select>
+              <input type="date" id="dueDateInput" aria-label="Due Date">
+            </div>
+
+            <div class="form-actions-row">
+              <button type="submit" class="btn-add">Add Task</button>
+              <button type="button" id="clearAllBtn" class="btn-clear">Clear All</button>
+            </div>
+            <p id="taskHelp" class="sr-only">Enter a task and press Add to track your study items.</p>
+          </form>
           
-          <div class="form-row">
-            <select id="priorityInput" aria-label="Task Priority">
-              <option value="low">Low Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="high">High Priority</option>
-            </select>
-            <select id="categoryInput" aria-label="Task Category">
-              <option value="general">🌟 General</option>
-              <option value="reading">📚 Reading</option>
-              <option value="homework">✍️ Homework</option>
-              <option value="examprep">🔬 Exam Prep</option>
-              <option value="project">🎨 Project</option>
-            </select>
-            <input type="date" id="dueDateInput" aria-label="Due Date">
+          <!-- Category Filter Tag Pill Bar -->
+          <div class="category-filters-container">
+            <span class="filters-label">Filter:</span>
+            <div id="categoryFilters" class="filter-pills">
+              <button class="filter-pill active" onclick="filterCategory('all')">All</button>
+              <button class="filter-pill" onclick="filterCategory('general')">🌟 General</button>
+              <button class="filter-pill" onclick="filterCategory('reading')">📚 Reading</button>
+              <button class="filter-pill" onclick="filterCategory('homework')">✍️ Homework</button>
+              <button class="filter-pill" onclick="filterCategory('examprep')">🔬 Exam Prep</button>
+              <button class="filter-pill" onclick="filterCategory('project')">🎨 Project</button>
+            </div>
           </div>
 
-          <div class="form-actions-row">
-            <button type="submit" class="btn-add">Add Task</button>
-            <button type="button" id="clearAllBtn" class="btn-clear">Clear All</button>
+          <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search tasks..." aria-label="Search tasks">
           </div>
-          <p id="taskHelp" class="sr-only">Enter a task and press Add to track your study items.</p>
-        </form>
-        
-        <!-- Category Filter Tag Pill Bar -->
-        <div class="category-filters-container">
-          <span class="filters-label">Filter:</span>
-          <div id="categoryFilters" class="filter-pills">
-            <button class="filter-pill active" onclick="filterCategory('all')">All</button>
-            <button class="filter-pill" onclick="filterCategory('general')">🌟 General</button>
-            <button class="filter-pill" onclick="filterCategory('reading')">📚 Reading</button>
-            <button class="filter-pill" onclick="filterCategory('homework')">✍️ Homework</button>
-            <button class="filter-pill" onclick="filterCategory('examprep')">🔬 Exam Prep</button>
-            <button class="filter-pill" onclick="filterCategory('project')">🎨 Project</button>
+
+          <p class="error" id="errorMsg" aria-live="assertive"></p>
+          
+          <!-- Task Progress bar pill -->
+          <div class="task-progress-wrapper" style="margin-top: 1.5rem;">
+            <div class="progress-bar-container" style="background: var(--border-color); height: 8px; border-radius: 9999px; overflow: hidden; position: relative;">
+              <div id="taskProgressBar" class="progress-bar-fill" style="background: var(--accent-color); width: 0%; height: 100%; transition: width 0.4s ease;"></div>
+            </div>
+            <div class="task-progress-status" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.35rem; margin-top: 0.5rem; font-size: 0.8rem; font-weight: 700; color: var(--text-color);">
+              <span id="taskProgressPercent">✅ 0 / 0 completed</span>
+            </div>
+          </div>
+
+          <ul id="taskList" role="list"></ul>
+        </section>
+
+        <!-- Motivational Quotes Section (in a separate div below Workspace Card!) -->
+        <div class="quotes-workspace-row">
+          <!-- Mindset & Grit Card -->
+          <div class="glass-card inspiration-card grit-card" style="margin: 0;">
+            <h2 class="sidebar-card-title">🔥 Mindset & Grit</h2>
+            <div class="quote-container">
+              <p id="gritQuoteText" class="quote-text">"It always seems impossible until it's done."</p>
+              <p id="gritQuoteAuthor" class="quote-author">— Nelson Mandela</p>
+            </div>
+            <button id="newGritQuoteBtn" class="quote-btn">✨ New Grit</button>
+          </div>
+
+          <!-- Consistency & Habit Card -->
+          <div class="glass-card inspiration-card habit-card" style="margin: 0;">
+            <h2 class="sidebar-card-title">⚡ Consistency & Habit</h2>
+            <div class="quote-container">
+              <p id="habitQuoteText" class="quote-text">"We are what we repeatedly do. Excellence, then, is not an act, but a habit."</p>
+              <p id="habitQuoteAuthor" class="quote-author">— Aristotle</p>
+            </div>
+            <button id="newHabitQuoteBtn" class="quote-btn">✨ New Habit</button>
           </div>
         </div>
-
-        <div class="search-container">
-          <input type="text" id="searchInput" placeholder="Search tasks..." aria-label="Search tasks">
-        </div>
-
-        <p class="error" id="errorMsg" aria-live="assertive"></p>
-        
-        <!-- Task Progress bar pill -->
-        <div class="task-progress-wrapper" style="margin-top: 1.5rem;">
-          <div class="progress-bar-container" style="background: var(--border-color); height: 8px; border-radius: 9999px; overflow: hidden; position: relative;">
-            <div id="taskProgressBar" class="progress-bar-fill" style="background: var(--accent-color); width: 0%; height: 100%; transition: width 0.4s ease;"></div>
-          </div>
-          <div class="task-progress-status" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.35rem; margin-top: 0.5rem; font-size: 0.8rem; font-weight: 700; color: var(--text-color);">
-            <span id="taskProgressPercent">✅ 0 / 0 completed</span>
-          </div>
-        </div>
-
-        <ul id="taskList" role="list"></ul>
-      </section>
+      </div>
 
       <!-- Right Column: Focus Sidebar -->
       <aside class="sidebar-col">

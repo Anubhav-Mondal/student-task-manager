@@ -495,12 +495,40 @@ const studyQuotes = [
   { text: "There are no shortcuts to any place worth going.", author: "Beverly Sills" }
 ];
 
+const gritQuotes = [
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { text: "Grit is passion and perseverance for very long-term goals.", author: "Angela Duckworth" },
+  { text: "Strength does not come from physical capacity. It comes from an indomitable will.", author: "Mahatma Gandhi" },
+  { text: "Press forward. Do not stop, do not linger in your journey, but strive for the mark set before you.", author: "George Whitefield" },
+  { text: "The difference between a successful person and others is not a lack of strength, but a lack of will.", author: "Vince Lombardi" }
+];
+
+const habitQuotes = [
+  { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Aristotle" },
+  { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" },
+  { text: "Continuous improvement is better than delayed perfection.", author: "Mark Twain" },
+  { text: "Successful people are simply those with successful habits.", author: "Brian Tracy" },
+  { text: "Your habits will determine your future.", author: "Jack Canfield" }
+];
+
 let currentQuoteIndex = 0;
+let currentGritIndex = 0;
+let currentHabitIndex = 0;
 
 function initQuotes() {
   const newQuoteBtn = document.getElementById("newQuoteBtn");
   if (newQuoteBtn) {
     newQuoteBtn.addEventListener("click", rotateQuote);
+  }
+
+  const newGritQuoteBtn = document.getElementById("newGritQuoteBtn");
+  if (newGritQuoteBtn) {
+    newGritQuoteBtn.addEventListener("click", rotateGritQuote);
+  }
+
+  const newHabitQuoteBtn = document.getElementById("newHabitQuoteBtn");
+  if (newHabitQuoteBtn) {
+    newHabitQuoteBtn.addEventListener("click", rotateHabitQuote);
   }
 }
 
@@ -510,7 +538,6 @@ function rotateQuote() {
   
   if (!quoteTextEl || !quoteAuthorEl) return;
 
-  // Find a new random index that is different from current
   let newIndex = currentQuoteIndex;
   while (newIndex === currentQuoteIndex && studyQuotes.length > 1) {
     newIndex = Math.floor(Math.random() * studyQuotes.length);
@@ -519,7 +546,58 @@ function rotateQuote() {
   
   const nextQuote = studyQuotes[currentQuoteIndex];
 
-  // Smooth fade transition using CSS opacities
+  quoteTextEl.style.opacity = "0";
+  quoteAuthorEl.style.opacity = "0";
+
+  setTimeout(() => {
+    quoteTextEl.innerText = `"${nextQuote.text}"`;
+    quoteAuthorEl.innerText = `— ${nextQuote.author}`;
+    
+    quoteTextEl.style.opacity = "0.9";
+    quoteAuthorEl.style.opacity = "1";
+  }, 300);
+}
+
+function rotateGritQuote() {
+  const quoteTextEl = document.getElementById("gritQuoteText");
+  const quoteAuthorEl = document.getElementById("gritQuoteAuthor");
+  
+  if (!quoteTextEl || !quoteAuthorEl) return;
+
+  let newIndex = currentGritIndex;
+  while (newIndex === currentGritIndex && gritQuotes.length > 1) {
+    newIndex = Math.floor(Math.random() * gritQuotes.length);
+  }
+  currentGritIndex = newIndex;
+  
+  const nextQuote = gritQuotes[currentGritIndex];
+
+  quoteTextEl.style.opacity = "0";
+  quoteAuthorEl.style.opacity = "0";
+
+  setTimeout(() => {
+    quoteTextEl.innerText = `"${nextQuote.text}"`;
+    quoteAuthorEl.innerText = `— ${nextQuote.author}`;
+    
+    quoteTextEl.style.opacity = "0.9";
+    quoteAuthorEl.style.opacity = "1";
+  }, 300);
+}
+
+function rotateHabitQuote() {
+  const quoteTextEl = document.getElementById("habitQuoteText");
+  const quoteAuthorEl = document.getElementById("habitQuoteAuthor");
+  
+  if (!quoteTextEl || !quoteAuthorEl) return;
+
+  let newIndex = currentHabitIndex;
+  while (newIndex === currentHabitIndex && habitQuotes.length > 1) {
+    newIndex = Math.floor(Math.random() * habitQuotes.length);
+  }
+  currentHabitIndex = newIndex;
+  
+  const nextQuote = habitQuotes[currentHabitIndex];
+
   quoteTextEl.style.opacity = "0";
   quoteAuthorEl.style.opacity = "0";
 
