@@ -118,3 +118,21 @@ if (searchInput) {
     });
   });
 }
+
+// Theme Selector & Persistence Engine
+document.addEventListener("DOMContentLoaded", () => {
+  const themeSwitcher = document.getElementById("themeSwitcher");
+  const savedTheme = localStorage.getItem("theme") || "dark";
+
+  // Apply theme to document root
+  document.documentElement.setAttribute("data-theme", savedTheme);
+
+  if (themeSwitcher) {
+    themeSwitcher.value = savedTheme;
+    themeSwitcher.addEventListener("change", (e) => {
+      const selectedTheme = e.target.value;
+      document.documentElement.setAttribute("data-theme", selectedTheme);
+      localStorage.setItem("theme", selectedTheme);
+    });
+  }
+});
