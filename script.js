@@ -6,6 +6,60 @@ const savedTheme = localStorage.getItem("theme") || "light";
 document.documentElement.setAttribute("data-theme", savedTheme);
 
 if (themeSwitcher) {
+  themeSwitcher.value = savedTheme;
+
+  themeSwitcher.addEventListener("change", function (e) {
+    const selectedTheme = e.target.value;
+    document.documentElement.setAttribute("data-theme", selectedTheme);
+    localStorage.setItem("theme", selectedTheme);
+  });
+}
+
+function toggleTask(checkbox) {
+  const span = checkbox.nextElementSibling;
+  span.classList.toggle("completed");
+  taskTracker();
+}
+
+function taskTracker() {
+  const tasks = document.querySelectorAll("#taskList li");
+  const completed = document.querySelectorAll("#taskList input:checked");
+
+  const empty = document.getElementById("emptyState");
+  if (empty) {
+    empty.style.display = tasks.length === 0 ? "block" : "none";
+  }
+
+  const stats = document.getElementById("taskStats");
+  if (stats) {
+    stats.innerText = `✅ ${completed.length} / ${tasks.length} completed`;
+  }
+
+}
+
+
+  const celebration = document.getElementById("celebration");
+
+  if (tasks.length > 0 && tasks.length === completed.length) {
+    celebration.classList.remove("hidden");
+
+    setTimeout(() => {
+      celebration.classList.add("show");
+    }, 100);
+  } else {
+    celebration.classList.remove("show");
+    celebration.classList.add("hidden");
+  }
+}
+ 
+
+const themeSwitcher = document.getElementById("themeSwitcher");
+
+// Load saved theme
+const savedTheme = localStorage.getItem("theme") || "light";
+document.documentElement.setAttribute("data-theme", savedTheme);
+
+if (themeSwitcher) {
    themeSwitcher.value = savedTheme;
 
    themeSwitcher.addEventListener("change", function (e) {
