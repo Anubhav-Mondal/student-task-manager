@@ -1,3 +1,36 @@
+const themeBtns = document.querySelectorAll(".theme-btn");
+
+// Load and apply saved theme
+const savedTheme = localStorage.getItem("theme") || "light";
+applyTheme(savedTheme);
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+  
+  // Update active state in UI
+  themeBtns.forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-theme") === theme);
+  });
+}
+
+themeBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    applyTheme(btn.getAttribute("data-theme"));
+  });
+});
+
+
+
+
+function toggleTask(checkbox) {
+  const span = checkbox.nextElementSibling;
+  span.classList.toggle("completed");
+
+  taskTracker();
+}
+
+
 
 const themeSwitcher = document.getElementById("themeSwitcher");
 
