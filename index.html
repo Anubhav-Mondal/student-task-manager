@@ -132,14 +132,29 @@
 
       <!-- TOPBAR -->
       <div class="topbar">
-        <div>
-          <h2>Dashboard</h2>
-          <p>Complete tasks and earn rewards ✨</p>
+        <div class="topbar-left">
+          <button id="mobileSidebarToggle" class="burger-btn" aria-label="Toggle Sidebar Menu">
+            <i class="ri-menu-line"></i>
+          </button>
+          <div>
+            <h2>Dashboard</h2>
+            <p>Complete tasks and earn rewards ✨</p>
+          </div>
         </div>
 
-        <button id="themeToggle">
-          <i class="ri-moon-clear-fill"></i>
-        </button>
+        <div class="topbar-right">
+          <!-- Accessibility Keyboard shortcuts visual hint -->
+          <span class="keyboard-hint" title="Keyboard Shortcuts: Alt+1 (Quests), Alt+2 (Stats), Alt+A (Focus Input), Alt+Space (Timer)">
+            <i class="ri-keyboard-line"></i> Shortcuts
+          </span>
+          
+          <div class="theme-selector-panel">
+            <button class="theme-dot active" data-theme="cosmic" aria-label="Cosmic Abyss Theme" style="background: linear-gradient(135deg, #a855f7, #06b6d4);"></button>
+            <button class="theme-dot" data-theme="aurora" aria-label="Aurora Borealis Theme" style="background: linear-gradient(135deg, #10b981, #2dd4bf);"></button>
+            <button class="theme-dot" data-theme="cyberpunk" aria-label="Neon Cyberpunk Theme" style="background: linear-gradient(135deg, #ec4899, #3b82f6);"></button>
+            <button class="theme-dot" data-theme="sunset" aria-label="Sunset Gold Theme" style="background: linear-gradient(135deg, #f59e0b, #f43f5e);"></button>
+          </div>
+        </div>
       </div>
 
       <!-- SLEEK TAB NAVIGATION -->
@@ -333,6 +348,53 @@
     </section>
 
   </main>
+
+  <!-- MOBILE BOTTOM NAVIGATION DOCK -->
+  <div class="mobile-bottom-dock glass">
+    <button class="dock-btn active" data-tab="quests" aria-label="Open Quests workspace">
+      <i class="ri-checkbox-multiple-line"></i>
+      <span>Quests</span>
+    </button>
+    
+    <button class="dock-btn-quick" id="mobileQuickAddBtn" aria-label="Quick Add Quest">
+      <i class="ri-add-line"></i>
+    </button>
+    
+    <button class="dock-btn" data-tab="analytics" aria-label="Open Stats dashboard">
+      <i class="ri-bar-chart-2-line"></i>
+      <span>Stats</span>
+    </button>
+  </div>
+
+  <!-- MOBILE QUICK ADD DRAWER -->
+  <div class="mobile-add-drawer-overlay" id="mobileAddDrawerOverlay"></div>
+  <div class="mobile-add-drawer glass" id="mobileAddDrawer">
+    <div class="drawer-header">
+      <div class="drawer-bar"></div>
+      <h3>Quick Add Quest</h3>
+      <button id="closeDrawerBtn" aria-label="Close form"><i class="ri-close-line"></i></button>
+    </div>
+    
+    <div class="drawer-body">
+      <input
+        type="text"
+        id="mobileTaskInput"
+        placeholder="What needs to be done?"
+        aria-label="New task name"
+      />
+
+      <select id="mobileCategorySelect" aria-label="Task category">
+        <option value="Theory">📘 Theory</option>
+        <option value="Practical">🧪 Practical</option>
+        <option value="Assignment">📝 Assignment</option>
+        <option value="Revision">📖 Revision</option>
+      </select>
+
+      <button id="mobileAddTaskBtn">
+        <i class="ri-add-line"></i>Create Quest
+      </button>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 

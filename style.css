@@ -1405,3 +1405,451 @@ body.light .subject-bar-container {
   }
 }
 
+/* ==========================================================================
+   PHASE 7: 4-THEME COLOR SYSTEM & ADVANCED RESPONSIVENESS / ACCESSIBILITY
+   ========================================================================== */
+
+/* 1. Theme Variable Definitions */
+
+/* Cosmic Abyss (Default Dark) */
+[data-theme="cosmic"], :root {
+  --bg: #060814;
+  --card: rgba(15, 12, 38, 0.45);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #ffffff;
+  --textLight: #94a3b8;
+  --primary: #a855f7;
+  --secondary: #06b6d4;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* Aurora Borealis (Dark Emerald) */
+[data-theme="aurora"] {
+  --bg: #030e12;
+  --card: rgba(5, 24, 28, 0.45);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e2f9f5;
+  --textLight: #64a3a1;
+  --primary: #10b981;
+  --secondary: #2dd4bf;
+  --success: #10b981;
+  --danger: #f43f5e;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* Neon Cyberpunk (Dark Synthwave) */
+[data-theme="cyberpunk"] {
+  --bg: #030206;
+  --card: rgba(14, 5, 24, 0.55);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f0f3ff;
+  --textLight: #a29bb8;
+  --primary: #ec4899;
+  --secondary: #3b82f6;
+  --success: #10b981;
+  --danger: #ef4444;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+}
+
+/* Sunset Gold (Premium Light) */
+[data-theme="sunset"] {
+  --bg: #fffcf8;
+  --card: rgba(255, 255, 255, 0.75);
+  --border: rgba(0, 0, 0, 0.07);
+  --text: #1e293b;
+  --textLight: #64748b;
+  --primary: #f59e0b;
+  --secondary: #f43f5e;
+  --success: #10b981;
+  --danger: #ef4444;
+  --shadow: 0 15px 45px rgba(220, 150, 50, 0.05);
+}
+
+/* 2. Theme Dot Selector in Topbar */
+.theme-selector-panel {
+  display: flex;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 99px;
+  align-items: center;
+}
+
+body.light .theme-selector-panel,
+[data-theme="sunset"] .theme-selector-panel {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.theme-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+}
+
+.theme-dot:hover {
+  transform: scale(1.3);
+}
+
+.theme-dot.active {
+  border-color: var(--text);
+  transform: scale(1.15);
+  box-shadow: 0 0 8px var(--primary);
+}
+
+/* 3. Advanced Keyboard Focus & Navigation Hints */
+:focus-visible {
+  outline: 3px solid var(--primary) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 15px var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.keyboard-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--textLight);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  margin-right: 15px;
+  cursor: help;
+}
+
+body.light .keyboard-hint,
+[data-theme="sunset"] .keyboard-hint {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* 4. Topbar Flex Layout adjustments */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.burger-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--border);
+  color: var(--text) !important;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: all 0.25s ease;
+}
+
+body.light .burger-btn,
+[data-theme="sunset"] .burger-btn {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+.burger-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: scale(1.05);
+}
+
+/* 5. Mobile collapsed sidebar transitions */
+@media(max-width: 900px) {
+  .burger-btn {
+    display: flex;
+  }
+  
+  .container {
+    grid-template-columns: 1fr;
+    padding: 20px 15px;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -380px;
+    width: 320px;
+    height: 100vh;
+    z-index: 2000;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    padding: 30px 20px;
+    overflow-y: auto;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(25px);
+  }
+  
+  .sidebar.open {
+    left: 0;
+  }
+  
+  /* Dimmed background overlay */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1999;
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s ease;
+  }
+  
+  .sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  /* Stacking workspace on smaller devices */
+  .workspace-layout {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Give enough spacing below content for bottom dock */
+  .main-content {
+    margin-bottom: 90px;
+  }
+}
+
+/* 6. Mobile Floating Bottom navigation dock */
+.mobile-bottom-dock {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 420px;
+  height: 70px;
+  background: rgba(15, 12, 38, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  z-index: 1500;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+}
+
+[data-theme="sunset"] .mobile-bottom-dock {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+@media(max-width: 900px) {
+  .mobile-bottom-dock {
+    display: flex;
+  }
+}
+
+.dock-btn {
+  background: transparent !important;
+  color: var(--textLight) !important;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px 16px;
+  border-radius: 12px;
+}
+
+.dock-btn i {
+  font-size: 20px;
+}
+
+.dock-btn:hover {
+  color: var(--text) !important;
+}
+
+.dock-btn.active {
+  color: var(--primary) !important;
+  transform: translateY(-2px);
+}
+
+/* Center floating button */
+.dock-btn-quick {
+  background: linear-gradient(135deg, var(--primary), var(--secondary)) !important;
+  color: white !important;
+  border: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  cursor: pointer;
+  transform: translateY(-20px);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dock-btn-quick:hover {
+  transform: translateY(-24px) scale(1.08);
+  box-shadow: 0 12px 30px rgba(168, 85, 247, 0.6);
+}
+
+.dock-btn-quick:active {
+  transform: translateY(-16px) scale(0.95);
+}
+
+/* 7. Mobile slide-up quick add drawer */
+.mobile-add-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1800;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-add-drawer-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-add-drawer {
+  position: fixed;
+  bottom: -400px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 440px;
+  background: var(--card) !important;
+  border: 1px solid var(--border);
+  border-radius: 30px 30px 24px 24px;
+  backdrop-filter: blur(25px);
+  z-index: 1801;
+  padding: 25px;
+  box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.5);
+  transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-add-drawer.open {
+  bottom: 100px; /* Positions perfectly above floating dock */
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.drawer-bar {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+body.light .drawer-bar,
+[data-theme="sunset"] .drawer-bar {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.drawer-header h3 {
+  font-size: 18px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+#closeDrawerBtn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: none;
+  color: var(--text) !important;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#closeDrawerBtn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.drawer-body input,
+.drawer-body select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 16px;
+  border-radius: 16px;
+  outline: none;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+}
+
+body.light .drawer-body input,
+body.light .drawer-body select,
+[data-theme="sunset"] .drawer-body input,
+[data-theme="sunset"] .drawer-body select {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.drawer-body button {
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 5px 15px rgba(168, 85, 247, 0.3);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.drawer-body button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
+}
+
+

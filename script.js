@@ -14,7 +14,6 @@ const xpText = document.getElementById("xpText");
 
 // Filters & Navigation
 const filterBtns = document.querySelectorAll(".filter-btn");
-const themeToggle = document.getElementById("themeToggle");
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
 
@@ -49,6 +48,33 @@ let analyticsData = {
 // 1. DATA INITIALIZATION & LOCALSTORAGE MANAGEMENT
 // ==========================================================================
 
+function setTheme(themeName) {
+  document.body.setAttribute("data-theme", themeName);
+  localStorage.setItem("quests_theme", themeName);
+
+  // Sunset is our custom light mode theme
+  if (themeName === "sunset") {
+    document.body.classList.add("light");
+  } else {
+    document.body.classList.remove("light");
+  }
+
+  // Update visual dot selector state
+  document.querySelectorAll(".theme-dot").forEach(dot => {
+    if (dot.dataset.theme === themeName) {
+      dot.classList.add("active");
+    } else {
+      dot.classList.remove("active");
+    }
+  });
+
+  // Re-render active charts to match new theme guidelines
+  if (document.getElementById("analytics-tab").classList.contains("active")) {
+    initStudyHoursChart();
+    initCategoryChart();
+  }
+}
+
 function loadData() {
   // Load tasks
   const savedTasks = localStorage.getItem("quests");
@@ -65,13 +91,9 @@ function loadData() {
   streak = parseInt(localStorage.getItem("streak")) || 0;
   xp = parseInt(localStorage.getItem("xp")) || 120;
 
-  // Load active theme
-  const savedTheme = localStorage.getItem("theme") || "dark";
-  if (savedTheme === "light") {
-    document.body.classList.add("light");
-  } else {
-    document.body.classList.remove("light");
-  }
+  // Load active theme color
+  const savedTheme = localStorage.getItem("quests_theme") || "cosmic";
+  setTheme(savedTheme);
 
   // Load analytics data
   const savedAnalytics = localStorage.getItem("quests_analytics");
@@ -212,24 +234,25 @@ function renderTasks() {
 
     div.innerHTML = `
       <div class="task-left">
-        <div class="check-btn"></div>
+        <div class="check-btn" tabindex="0" aria-label="Toggle completed task"></div>
         <div>
           <h3 class="task-title">${escapeHtml(task.text)}</h3>
           <p class="task-category">${getCategoryEmoji(task.category)} ${task.category}</p>
         </div>
       </div>
       <div class="task-actions">
-        <button class="icon-btn edit-btn">
+        <button class="icon-btn edit-btn" aria-label="Edit Quest">
           <i class="ri-edit-line"></i>
         </button>
-        <button class="icon-btn delete-btn">
+        <button class="icon-btn delete-btn" aria-label="Delete Quest">
           <i class="ri-delete-bin-6-line"></i>
         </button>
       </div>
     `;
 
     // Toggle Complete event
-    div.querySelector(".check-btn").addEventListener("click", () => {
+    const checkBtn = div.querySelector(".check-btn");
+    const handleToggle = () => {
       task.completed = !task.completed;
       const todayStr = getFormattedDate(new Date());
 
@@ -259,6 +282,14 @@ function renderTasks() {
       saveData();
       updateGamification();
       renderTasks();
+    };
+
+    checkBtn.addEventListener("click", handleToggle);
+    checkBtn.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleToggle();
+      }
     });
 
     // Delete task event
@@ -420,6 +451,11 @@ function resetTimer() {
   updateDisplay();
 }
 
+// Attach event listeners to Pomodoro buttons
+document.getElementById("startTimer")?.addEventListener("click", startTimer);
+document.getElementById("pauseTimer")?.addEventListener("click", pauseTimer);
+document.getElementById("resetTimer")?.addEventListener("click", resetTimer);
+
 // ==========================================================================
 // 4. TAB & NAVIGATION ROUTERS
 // ==========================================================================
@@ -431,12 +467,35 @@ tabBtns.forEach(btn => {
 
     btn.classList.add("active");
     const activeTabId = `${btn.dataset.tab}-tab`;
-    document.getElementById(activeTabId).classList.add("active");
+    const tabEl = document.getElementById(activeTabId);
+    if (tabEl) tabEl.classList.add("active");
+
+    // Sync active state in mobile bottom navigation dock
+    document.querySelectorAll(".dock-btn").forEach(db => {
+      if (db.dataset.tab === btn.dataset.tab) {
+        db.classList.add("active");
+      } else {
+        db.classList.remove("active");
+      }
+    });
 
     // Refresh charts and heatmap on tab load
     if (btn.dataset.tab === "analytics") {
       updateAnalyticsDashboard();
     }
+  });
+});
+
+// Mobile Bottom dock click routers
+document.querySelectorAll(".dock-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const targetTab = btn.dataset.tab;
+    // Activate corresponding top button and content
+    tabBtns.forEach(b => {
+      if (b.dataset.tab === targetTab) {
+        b.click();
+      }
+    });
   });
 });
 
@@ -448,17 +507,21 @@ function updateAnalyticsDashboard() {
   // 1. Update stats cards
   const totalStudyMinutes = Object.values(analyticsData.dailyStudyMinutes).reduce((a, b) => a + b, 0);
   const totalStudyHours = (totalStudyMinutes / 60).toFixed(1);
-  document.getElementById("analyticsTotalHours").textContent = `${totalStudyHours}h`;
+  const totalHoursEl = document.getElementById("analyticsTotalHours");
+  if (totalHoursEl) totalHoursEl.textContent = `${totalStudyHours}h`;
 
   const totalCompletedQuests = Object.values(analyticsData.completedTasksPerDay).reduce((a, b) => a + b, 0);
-  document.getElementById("analyticsCompletedQuests").textContent = totalCompletedQuests;
+  const completedQuestsEl = document.getElementById("analyticsCompletedQuests");
+  if (completedQuestsEl) completedQuestsEl.textContent = totalCompletedQuests;
 
-  document.getElementById("analyticsStreak").textContent = `${analyticsData.currentStreak} days`;
+  const streakEl = document.getElementById("analyticsStreak");
+  if (streakEl) streakEl.textContent = `${analyticsData.currentStreak} days`;
 
   const totalCreated = Object.values(analyticsData.categoryStats).reduce((acc, obj) => acc + (obj.created || 0), 0);
   const totalCompleted = Object.values(analyticsData.categoryStats).reduce((acc, obj) => acc + (obj.completed || 0), 0);
   const completionRate = totalCreated > 0 ? Math.round((totalCompleted / totalCreated) * 100) : 0;
-  document.getElementById("analyticsCompletionRate").textContent = `${completionRate}%`;
+  const rateEl = document.getElementById("analyticsCompletionRate");
+  if (rateEl) rateEl.textContent = `${completionRate}%`;
 
   // 2. Initialize or Update Chart.js instances
   initStudyHoursChart();
@@ -470,7 +533,10 @@ function updateAnalyticsDashboard() {
 }
 
 function initStudyHoursChart() {
-  const ctx = document.getElementById("studyHoursChart").getContext("2d");
+  const chartCanvas = document.getElementById("studyHoursChart");
+  if (!chartCanvas) return;
+
+  const ctx = chartCanvas.getContext("2d");
   const dates = [];
   const studyValues = [];
   const today = new Date();
@@ -495,7 +561,7 @@ function initStudyHoursChart() {
     studyChartInstance.destroy();
   }
 
-  // Generate gorgeous linear gradients for the chart
+  // Generate linear gradients for the chart
   const gradient = ctx.createLinearGradient(0, 0, 0, 300);
   gradient.addColorStop(0, primaryClr);
   gradient.addColorStop(1, secondaryClr);
@@ -533,7 +599,10 @@ function initStudyHoursChart() {
 }
 
 function initCategoryChart() {
-  const ctx = document.getElementById("categoryChart").getContext("2d");
+  const chartCanvas = document.getElementById("categoryChart");
+  if (!chartCanvas) return;
+
+  const ctx = chartCanvas.getContext("2d");
   
   const labels = ["Theory 📘", "Practical 🧪", "Assignment 📝", "Revision 📖"];
   const completedData = [
@@ -578,14 +647,14 @@ function initCategoryChart() {
 }
 
 // Chart toggle click listeners
-document.getElementById("btnWeeklyStudy").addEventListener("click", () => {
+document.getElementById("btnWeeklyStudy")?.addEventListener("click", () => {
   document.getElementById("btnWeeklyStudy").classList.add("active");
   document.getElementById("btnMonthlyStudy").classList.remove("active");
   currentStudyView = "weekly";
   initStudyHoursChart();
 });
 
-document.getElementById("btnMonthlyStudy").addEventListener("click", () => {
+document.getElementById("btnMonthlyStudy")?.addEventListener("click", () => {
   document.getElementById("btnMonthlyStudy").classList.add("active");
   document.getElementById("btnWeeklyStudy").classList.remove("active");
   currentStudyView = "monthly";
@@ -598,6 +667,7 @@ document.getElementById("btnMonthlyStudy").addEventListener("click", () => {
 
 function renderHeatmap() {
   const container = document.getElementById("heatmapContainer");
+  if (!container) return;
   container.innerHTML = "";
 
   const today = new Date();
@@ -646,6 +716,7 @@ function renderHeatmap() {
 
 function renderQuestMastery() {
   const container = document.getElementById("subjectProgressList");
+  if (!container) return;
   container.innerHTML = "";
 
   const categories = ["Theory", "Practical", "Assignment", "Revision"];
@@ -676,7 +747,144 @@ function renderQuestMastery() {
 }
 
 // ==========================================================================
-// 8. INTERACTIVE SYSTEM WORKFLOWS
+// 8. ADVANCED RESPONSIVENESS AND COLLAPSIBLE SIDEBAR MENU
+// ==========================================================================
+
+const sidebar = document.querySelector(".sidebar");
+const sidebarOverlay = document.createElement("div");
+sidebarOverlay.className = "sidebar-overlay";
+document.body.appendChild(sidebarOverlay);
+
+const mobileSidebarToggle = document.getElementById("mobileSidebarToggle");
+
+function toggleSidebar(show) {
+  if (show) {
+    sidebar.classList.add("open");
+    sidebarOverlay.classList.add("active");
+  } else {
+    sidebar.classList.remove("open");
+    sidebarOverlay.classList.remove("active");
+  }
+}
+
+if (mobileSidebarToggle) {
+  mobileSidebarToggle.addEventListener("click", () => toggleSidebar(true));
+}
+sidebarOverlay.addEventListener("click", () => toggleSidebar(false));
+
+// ==========================================================================
+// 9. MOBILE FLOATING QUICK ADD Form Controllers
+// ==========================================================================
+
+const mobileAddDrawer = document.getElementById("mobileAddDrawer");
+const mobileAddDrawerOverlay = document.getElementById("mobileAddDrawerOverlay");
+const mobileQuickAddBtn = document.getElementById("mobileQuickAddBtn");
+const closeDrawerBtn = document.getElementById("closeDrawerBtn");
+const mobileAddTaskBtn = document.getElementById("mobileAddTaskBtn");
+const mobileTaskInput = document.getElementById("mobileTaskInput");
+const mobileCategorySelect = document.getElementById("mobileCategorySelect");
+
+function toggleMobileDrawer(show) {
+  if (show) {
+    mobileAddDrawer.classList.add("open");
+    mobileAddDrawerOverlay.classList.add("active");
+    setTimeout(() => mobileTaskInput.focus(), 150); // Auto-focus on drawer slide up
+  } else {
+    mobileAddDrawer.classList.remove("open");
+    mobileAddDrawerOverlay.classList.remove("active");
+  }
+}
+
+if (mobileQuickAddBtn) {
+  mobileQuickAddBtn.addEventListener("click", () => toggleMobileDrawer(true));
+}
+if (closeDrawerBtn) {
+  closeDrawerBtn.addEventListener("click", () => toggleMobileDrawer(false));
+}
+if (mobileAddDrawerOverlay) {
+  mobileAddDrawerOverlay.addEventListener("click", () => toggleMobileDrawer(false));
+}
+
+// Create new quest from mobile form
+if (mobileAddTaskBtn) {
+  mobileAddTaskBtn.addEventListener("click", () => {
+    const text = mobileTaskInput.value.trim();
+    const category = mobileCategorySelect.value;
+
+    if (text === "") return;
+
+    const task = {
+      id: Date.now(),
+      text,
+      category,
+      completed: false,
+      createdAt: getFormattedDate(new Date())
+    };
+
+    tasks.push(task);
+    mobileTaskInput.value = "";
+
+    if (!analyticsData.categoryStats[category]) {
+      analyticsData.categoryStats[category] = { created: 0, completed: 0 };
+    }
+    analyticsData.categoryStats[category].created += 1;
+
+    saveData();
+    renderTasks();
+    toggleMobileDrawer(false); // Hide overlay
+  });
+}
+
+// ==========================================================================
+// 10. ACCESSIBILITY COMPLIANCE KEYBOARD SHORTCUTS
+// ==========================================================================
+
+document.addEventListener("keydown", e => {
+  // Focus main input or open mobile input form on Alt + N or Alt + A
+  if (e.altKey && (e.key.toLowerCase() === 'n' || e.key.toLowerCase() === 'a')) {
+    e.preventDefault();
+    if (window.innerWidth <= 900) {
+      toggleMobileDrawer(true);
+    } else {
+      taskInput.focus();
+    }
+  }
+
+  // Switch to workspace tab on Alt + 1
+  if (e.altKey && e.key === '1') {
+    e.preventDefault();
+    const tabBtnQuests = document.querySelector('[data-tab="quests"]');
+    if (tabBtnQuests) tabBtnQuests.click();
+  }
+
+  // Switch to analytics dashboard on Alt + 2
+  if (e.altKey && e.key === '2') {
+    e.preventDefault();
+    const tabBtnAnalytics = document.querySelector('[data-tab="analytics"]');
+    if (tabBtnAnalytics) tabBtnAnalytics.click();
+  }
+
+  // Alt + Space to start/pause Study Timer
+  if (e.altKey && e.code === 'Space') {
+    e.preventDefault();
+    if (timer) {
+      pauseTimer();
+      alert("Timer Paused");
+    } else {
+      startTimer();
+      alert("Timer Started");
+    }
+  }
+
+  // Escape to close active mobile sidebar or slide drawers
+  if (e.key === 'Escape') {
+    toggleSidebar(false);
+    toggleMobileDrawer(false);
+  }
+});
+
+// ==========================================================================
+// 11. INTERACTIVE SYSTEM WORKFLOWS
 // ==========================================================================
 
 // Filter Button routers
@@ -689,20 +897,14 @@ filterBtns.forEach(btn => {
   });
 });
 
-// Theme Selector Router
-themeToggle.addEventListener("click", () => {
-  document.body.classList.toggle("light");
-  const isLight = document.body.classList.contains("light");
-  localStorage.setItem("theme", isLight ? "light" : "dark");
-
-  // Adjust theme on charts if they are currently loaded
-  if (document.getElementById("analytics-tab").classList.contains("active")) {
-    initStudyHoursChart();
-    initCategoryChart();
-  }
+// Theme selection dot selectors click listeners
+document.querySelectorAll(".theme-dot").forEach(dot => {
+  dot.addEventListener("click", () => {
+    setTheme(dot.dataset.theme);
+  });
 });
 
-// Keypress triggers
+// Main Keypress triggers
 taskInput.addEventListener("keypress", e => {
   if (e.key === "Enter") {
     addTask();
