@@ -1,508 +1,271 @@
+const taskInput = document.getElementById("taskInput");
+const addTaskBtn = document.getElementById("addTaskBtn");
+const taskList = document.getElementById("taskList");
+const categorySelect = document.getElementById("categorySelect");
 
-const themeSwitcher = document.getElementById("themeSwitcher");
+const totalTasks = document.getElementById("totalTasks");
+const completedTasks = document.getElementById("completedTasks");
 
-// Load saved theme
-const savedTheme = localStorage.getItem("theme") || "light";
-document.documentElement.setAttribute("data-theme", savedTheme);
+const points = document.getElementById("points");
+const streakCount = document.getElementById("streakCount");
 
-if (themeSwitcher) {
-  themeSwitcher.value = savedTheme;
+const filterBtns = document.querySelectorAll(".filter-btn");
 
-  themeSwitcher.addEventListener("change", function (e) {
-    const selectedTheme = e.target.value;
-    document.documentElement.setAttribute("data-theme", selectedTheme);
-    localStorage.setItem("theme", selectedTheme);
-  });
-}
+const themeToggle = document.getElementById("themeToggle");
 
-function toggleTask(checkbox) {
-  const span = checkbox.nextElementSibling;
-  span.classList.toggle("completed");
-  taskTracker();
-}
+const xpFill = document.getElementById("xpFill");
+const xpText = document.getElementById("xpText");
 
-function taskTracker() {
-  const tasks = document.querySelectorAll("#taskList li");
-  const completed = document.querySelectorAll("#taskList input:checked");
+let tasks = [];
 
-  const empty = document.getElementById("emptyState");
-  if (empty) {
-    empty.style.display = tasks.length === 0 ? "block" : "none";
-  }
+let currentFilter = "All";
 
-  const stats = document.getElementById("taskStats");
-  if (stats) {
-    stats.innerText = `✅ ${completed.length} / ${tasks.length} completed`;
-  }
+let coins = 0;
 
-}
+let streak = 0;
 
+let xp = 120;
 
-  const celebration = document.getElementById("celebration");
+/* ADD TASK */
 
-  if (tasks.length > 0 && tasks.length === completed.length) {
-    celebration.classList.remove("hidden");
+function addTask() {
 
-    setTimeout(() => {
-      celebration.classList.add("show");
-    }, 100);
-  } else {
-    celebration.classList.remove("show");
-    celebration.classList.add("hidden");
-  }
-}
- 
+  const text = taskInput.value.trim();
 
-const themeSwitcher = document.getElementById("themeSwitcher");
+  const category = categorySelect.value;
 
-// Load saved theme
-const savedTheme = localStorage.getItem("theme") || "light";
-document.documentElement.setAttribute("data-theme", savedTheme);
+  if (text === "") return;
 
-if (themeSwitcher) {
-   themeSwitcher.value = savedTheme;
-
-   themeSwitcher.addEventListener("change", function (e) {
-      const selectedTheme = e.target.value;
-
-      document.documentElement.setAttribute("data-theme", selectedTheme);
-      localStorage.setItem("theme", selectedTheme);
-   });
-}
-
-function toggleTask(checkbox) {
-   const li = checkbox.closest("li");
-   const textWrapper = checkbox.nextElementSibling;
-   const span = textWrapper ? textWrapper.querySelector("span") : li.querySelector("span");
-
-   if (span) {
-      span.classList.toggle("completed");
-   }
-
-   if (li) {
-      if (checkbox.checked) {
-         li.classList.add("completed");
-         if (span) span.setAttribute("aria-label", `${span.textContent}, completed`);
-      } else {
-         li.classList.remove("completed");
-         if (span) span.removeAttribute("aria-label");
-      }
-   }
-
-   taskTracker();
-}
-
-
-function taskTracker() {
-   const tasks = document.querySelectorAll("#taskList li");
-   const completed = document.querySelectorAll("#taskList input:checked");
-
-   const empty = document.getElementById("emptyState");
-   if (empty) {
-      empty.style.display = tasks.length === 0 ? "block" : "none";
-   }
-
-   const stats = document.getElementById("taskStats");
-   if (stats) {
-      stats.innerText = `✅ ${completed.length} / ${tasks.length} completed`;
-   }
-
-   const celebration = document.getElementById("celebration");
-
-   if (celebration) {
-      if (tasks.length > 0 && tasks.length === completed.length) {
-         celebration.classList.remove("hidden");
-
-         setTimeout(() => {
-            celebration.classList.add("show");
-         }, 100);
-      } else {
-         celebration.classList.remove("show");
-         celebration.classList.add("hidden");
-      }
-   }
-}
-
-function sortTasks(order) {
-   const taskList = document.getElementById("taskList");
-   const tasks = Array.from(taskList.getElementsByTagName("li"));
-
-   tasks.sort((a, b) => {
-      const textA = a.querySelector("span").textContent.toLowerCase();
-      const textB = b.querySelector("span").textContent.toLowerCase();
-
-      if (order === "asc") {
-         return textA.localeCompare(textB);
-      } else {
-         return textB.localeCompare(textA);
-      }
-   });
-
-   tasks.forEach(task => taskList.appendChild(task));
-}
-document.addEventListener("DOMContentLoaded", () => {
-  const elements = {
-    taskForm: document.getElementById("taskForm"),
-    taskInput: document.getElementById("taskInput"),
-    categoryInput: document.getElementById("categoryInput"),
-    taskList: document.getElementById("taskList"),
-    taskStats: document.getElementById("taskStats"),
-    searchInput: document.getElementById("searchInput"),
-    sortAscBtn: document.getElementById("sortAscBtn"),
-    sortDescBtn: document.getElementById("sortDescBtn"),
-    filterButtons: document.getElementById("filterButtons"),
-    errorMsg: document.getElementById("errorMsg"),
-    themeSwitcher: document.getElementById("themeSwitcher"),
-    emptyState: document.getElementById("emptyState"),
-    celebration: document.getElementById("celebration"),
+  const task = {
+    id: Date.now(),
+    text,
+    category,
+    completed: false
   };
 
-  const state = {
-    tasks: loadTasks(),
-    searchQuery: "",
-    currentFilter: "all",
-    sortOrder: null,
-  };
+  tasks.push(task);
 
-  init();
+  taskInput.value = "";
 
-  function init() {
-    loadTheme();
-    bindEvents();
-    renderTasks();
+  renderTasks();
+}
+
+/* RENDER */
+
+function renderTasks() {
+
+  taskList.innerHTML = "";
+
+  let filteredTasks = tasks;
+
+  if (currentFilter !== "All") {
+
+    filteredTasks = tasks.filter(
+      task => task.category === currentFilter
+    );
+
   }
 
-  function bindEvents() {
-    if (elements.taskForm) {
-      elements.taskForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        addTask();
-      });
-    }
+  if (filteredTasks.length === 0) {
 
-    if (elements.taskInput) {
-      elements.taskInput.addEventListener("input", () => {
-        if (elements.errorMsg) {
-          elements.errorMsg.textContent = "";
-        }
-      });
-    }
+    taskList.innerHTML = `
+      <div class="empty-state">
 
-    if (elements.searchInput) {
-      elements.searchInput.addEventListener("input", (event) => {
-        state.searchQuery = event.target.value;
-        renderTasks();
-      });
-    }
+        <i class="ri-ghost-2-line"></i>
 
-    if (elements.filterButtons) {
-      elements.filterButtons.addEventListener("click", (event) => {
-        const button = event.target.closest(".filter-btn");
-        if (!button) {
-          return;
-        }
+        <h3>No Tasks Yet</h3>
 
-        document.querySelectorAll(".filter-btn").forEach((item) => item.classList.remove("active"));
-        button.classList.add("active");
-        state.currentFilter = button.dataset.filter;
-        renderTasks();
-      });
-    }
+        <p>
+          Add tasks and begin your productivity journey ✨
+        </p>
 
-    if (elements.sortAscBtn) {
-      elements.sortAscBtn.addEventListener("click", () => {
-        state.sortOrder = "asc";
-        renderTasks();
-      });
-    }
+      </div>
+    `;
 
-    if (elements.sortDescBtn) {
-      elements.sortDescBtn.addEventListener("click", () => {
-        state.sortOrder = "desc";
-        renderTasks();
-      });
-    }
-
-    if (elements.themeSwitcher) {
-      elements.themeSwitcher.addEventListener("change", (event) => {
-        setTheme(event.target.value);
-      });
-    }
   }
 
-  function addTask() {
-    const text = elements.taskInput ? elements.taskInput.value.trim() : "";
-    const category = elements.categoryInput ? elements.categoryInput.value : "Theory";
+  filteredTasks.forEach(task => {
 
-    if (!text) {
-      if (elements.errorMsg) {
-        elements.errorMsg.textContent = "Please enter a task.";
-      }
-      return;
-    }
+    const div = document.createElement("div");
 
-    if (elements.errorMsg) {
-      elements.errorMsg.textContent = "";
-    }
-
-    state.tasks.unshift({
-      id: Date.now(),
-      text,
-      category,
-      completed: false,
-      createdAt: formatTimestamp(new Date()),
-    });
-
-    saveTasks();
-
-    if (elements.taskInput) {
-      elements.taskInput.value = "";
-      elements.taskInput.focus();
-    }
-
-    renderTasks();
-  }
-
-  function toggleTask(id) {
-    state.tasks = state.tasks.map((task) => {
-      if (task.id === id) {
-        return { ...task, completed: !task.completed };
-      }
-
-      return task;
-    });
-
-    saveTasks();
-    renderTasks();
-  }
-
-  function editTask(id) {
-    const task = state.tasks.find((item) => item.id === id);
-    if (!task) {
-      return;
-    }
-
-    const updatedText = prompt("Edit task:", task.text);
-    if (updatedText === null) {
-      return;
-    }
-
-    const trimmedText = updatedText.trim();
-    if (!trimmedText) {
-      return;
-    }
-
-    task.text = trimmedText;
-    task.createdAt = formatTimestamp(new Date());
-    saveTasks();
-    renderTasks();
-  }
-
-  function deleteTask(id) {
-    state.tasks = state.tasks.filter((task) => task.id !== id);
-    saveTasks();
-    renderTasks();
-  }
-
-  function renderTasks() {
-    if (!elements.taskList) {
-      return;
-    }
-
-    elements.taskList.innerHTML = "";
-
-    const visibleTasks = state.tasks
-      .filter((task) => {
-        const matchesSearch = task.text.toLowerCase().includes(state.searchQuery.toLowerCase());
-        const matchesFilter =
-          state.currentFilter === "all" ||
-          (state.currentFilter === "active" && !task.completed) ||
-          (state.currentFilter === "completed" && task.completed) ||
-          task.category === state.currentFilter;
-
-        return matchesSearch && matchesFilter;
-      })
-      .slice();
-
-    if (state.sortOrder === "asc") {
-      visibleTasks.sort((first, second) => first.text.localeCompare(second.text, undefined, { sensitivity: "base" }));
-    } else if (state.sortOrder === "desc") {
-      visibleTasks.sort((first, second) => second.text.localeCompare(first.text, undefined, { sensitivity: "base" }));
-    }
-
-    if (elements.emptyState) {
-      elements.emptyState.hidden = visibleTasks.length !== 0;
-      if (visibleTasks.length === 0) {
-        elements.emptyState.textContent = state.searchQuery
-          ? "No matching tasks found."
-          : state.currentFilter === "all"
-            ? "No tasks yet. Add one to get started."
-            : "No tasks match this filter.";
-      } else {
-        elements.emptyState.textContent = "No tasks yet. Add one to get started."
-      }
-    }
-
-    visibleTasks.forEach((task) => {
-      elements.taskList.appendChild(createTaskElement(task));
-    });
-
-    updateStats();
-    updateCelebration();
-  }
-
-  function createTaskElement(task) {
-    const li = document.createElement("li");
-    li.dataset.category = task.category;
+    div.classList.add("task");
 
     if (task.completed) {
-      li.classList.add("completed");
+      div.classList.add("completed");
     }
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = task.completed;
-    checkbox.addEventListener("change", () => toggleTask(task.id));
+    div.innerHTML = `
+      <div class="task-left">
 
-    const content = document.createElement("div");
-    content.className = "task-content";
+        <div class="check-btn"></div>
 
-    const textRow = document.createElement("div");
-    textRow.className = "task-text-row";
+        <div>
 
-    const text = document.createElement("span");
-    text.className = "task-text";
-    text.textContent = task.text;
+          <h3 class="task-title">
+            ${task.text}
+          </h3>
 
-    const badge = document.createElement("span");
-    badge.className = "category-badge";
-    badge.textContent = `${getCategoryEmoji(task.category)} ${task.category}`;
+          <p class="task-category">
+            ${task.category}
+          </p>
 
-    const time = document.createElement("small");
-    time.className = "task-time";
-    time.textContent = task.createdAt;
+        </div>
 
-    const actions = document.createElement("div");
-    actions.className = "task-actions";
+      </div>
 
-    const editButton = document.createElement("button");
-    editButton.type = "button";
-    editButton.className = "edit-btn";
-    editButton.textContent = "Edit";
-    editButton.addEventListener("click", () => editTask(task.id));
+      <div class="task-actions">
 
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.className = "remove-btn";
-    removeButton.textContent = "Remove";
-    removeButton.addEventListener("click", () => deleteTask(task.id));
+        <button class="icon-btn edit-btn">
+          <i class="ri-edit-line"></i>
+        </button>
 
-    textRow.append(text, badge);
-    content.append(textRow, time);
-    actions.append(editButton, removeButton);
-    li.append(checkbox, content, actions);
+        <button class="icon-btn delete-btn">
+          <i class="ri-delete-bin-6-line"></i>
+        </button>
 
-    return li;
-  }
+      </div>
+    `;
 
-  function updateStats() {
-    if (!elements.taskStats) {
-      return;
-    }
+    /* COMPLETE */
 
-    const completedCount = state.tasks.filter((task) => task.completed).length;
-    elements.taskStats.textContent = `${completedCount} / ${state.tasks.length} completed`;
-  }
+    div.querySelector(".check-btn")
+      .addEventListener("click", () => {
 
-  function updateCelebration() {
-    if (!elements.celebration) {
-      return;
-    }
+        task.completed = !task.completed;
 
-    const hasTasks = state.tasks.length > 0;
-    const allComplete = hasTasks && state.tasks.every((task) => task.completed);
+        if (task.completed) {
 
-    elements.celebration.classList.toggle("hidden", !allComplete);
-    elements.celebration.classList.toggle("show", allComplete);
-  }
+          coins += 10;
 
-  function saveTasks() {
-    localStorage.setItem("tasks", JSON.stringify(state.tasks));
-  }
+          streak += 1;
 
-  function loadTasks() {
-    try {
-      return JSON.parse(localStorage.getItem("tasks")) || [];
-    } catch (error) {
-      return [];
-    }
-  }
+          xp += 20;
 
-  function loadTheme() {
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme, false);
-  }
+        } else {
 
-  function setTheme(theme, persist = true) {
-    document.documentElement.setAttribute("data-theme", theme);
+          coins -= 10;
 
-    if (elements.themeSwitcher) {
-      elements.themeSwitcher.value = theme;
-    }
+          streak -= 1;
 
-    if (persist) {
-      localStorage.setItem("theme", theme);
-    }
-  }
- document.addEventListener("DOMContentLoaded", () => {
-  const themeSwitcher = document.getElementById("themeSwitcher");
+          xp -= 20;
 
-  function loadTheme() {
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme, false);
-  }
+        }
 
-  function setTheme(theme, persist = true) {
-    document.documentElement.setAttribute("data-theme", theme);
+        updateGamification();
 
-    if (themeSwitcher) {
-      themeSwitcher.value = theme;
-    }
+        renderTasks();
 
-    if (persist) {
-      localStorage.setItem("theme", theme);
-    }
-  }
+      });
 
-  if (themeSwitcher) {
-    themeSwitcher.addEventListener("change", (e) => {
-      setTheme(e.target.value);
-    });
-  }
+    /* DELETE */
 
-  loadTheme();
+    div.querySelector(".delete-btn")
+      .addEventListener("click", () => {
+
+        tasks = tasks.filter(
+          t => t.id !== task.id
+        );
+
+        renderTasks();
+
+      });
+
+    /* EDIT */
+
+    div.querySelector(".edit-btn")
+      .addEventListener("click", () => {
+
+        const updated = prompt(
+          "Edit your quest",
+          task.text
+        );
+
+        if (updated !== null && updated.trim() !== "") {
+
+          task.text = updated;
+
+          renderTasks();
+
+        }
+
+      });
+
+    taskList.appendChild(div);
+
+  });
+
+  updateStats();
+}
+
+/* STATS */
+
+function updateStats() {
+
+  totalTasks.textContent = tasks.length;
+
+  const completed = tasks.filter(
+    task => task.completed
+  ).length;
+
+  completedTasks.textContent = completed;
+}
+
+/* GAMIFICATION */
+
+function updateGamification() {
+
+  points.textContent = coins;
+
+  streakCount.textContent = streak;
+
+  xpText.textContent = `${xp} / 300 XP`;
+
+  xpFill.style.width = `${xp / 3}%`;
+}
+
+/* FILTERS */
+
+filterBtns.forEach(btn => {
+
+  btn.addEventListener("click", () => {
+
+    filterBtns.forEach(
+      b => b.classList.remove("active")
+    );
+
+    btn.classList.add("active");
+
+    currentFilter = btn.dataset.filter;
+
+    renderTasks();
+
+  });
+
 });
 
+/* THEME */
 
-  function formatTimestamp(date) {
-    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const day = dayNames[date.getDay()];
-    const dayOfMonth = date.getDate();
-    const month = date.toLocaleString("default", { month: "long" });
-    const year = date.getFullYear();
-    const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+themeToggle.addEventListener("click", () => {
 
-    return `${day}, ${dayOfMonth} ${month} ${year} at ${time}`;
-  }
+  document.body.classList.toggle("light");
 
-  function getCategoryEmoji(category) {
-    const emojis = {
-      Theory: "📘",
-      Practical: "💻",
-      Revision: "🔄",
-      Assignment: "📝",
-    };
-
-    return emojis[category] || "📚";
-  }
 });
+
+/* ENTER */
+
+taskInput.addEventListener("keypress", e => {
+
+  if (e.key === "Enter") {
+    addTask();
+  }
+
+});
+
+/* BUTTON */
+
+addTaskBtn.addEventListener(
+  "click",
+  addTask
+);
+
+updateGamification();
