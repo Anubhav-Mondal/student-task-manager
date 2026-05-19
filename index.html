@@ -179,8 +179,23 @@
                 <option value="Assignment">📝 Assignment</option>
                 <option value="Revision">📖 Revision</option>
               </select>
+              <select id="prioritySelect" aria-label="Task priority">
+                <option value="High">🔴 High</option>
+                <option value="Medium" selected>🟡 Medium</option>
+                <option value="Low">🟢 Low</option>
+              </select>
               <button id="addTaskBtn">
                 <i class="ri-add-line"></i> Add Task
+              </button>
+            </div>
+
+            <!-- VIEW TOGGLES -->
+            <div class="view-toggles">
+              <button class="view-btn active" id="listViewBtn" aria-label="Show list view">
+                <i class="ri-list-check"></i> List View
+              </button>
+              <button class="view-btn" id="boardViewBtn" aria-label="Show Kanban board view">
+                <i class="ri-kanban-view"></i> Kanban Board
               </button>
             </div>
 
@@ -205,11 +220,17 @@
             </div>
 
             <!-- TASKS -->
-            <div class="task-list" id="taskList">
-              <div class="empty-state">
-                <i class="ri-ghost-2-line"></i>
-                <h3>No Tasks Yet</h3>
-                <p>Add tasks and start your productivity adventure.</p>
+            <div class="task-list-wrapper">
+              <div class="task-list" id="taskList">
+                <div class="empty-state">
+                  <i class="ri-ghost-2-line"></i>
+                  <h3>No Tasks Yet</h3>
+                  <p>Add tasks and start your productivity adventure.</p>
+                </div>
+              </div>
+
+              <div class="board-columns" id="boardColumns" style="display: none;">
+                <!-- Populate columns dynamically in JS -->
               </div>
             </div>
           </div>
@@ -470,6 +491,12 @@
         <option value="Practical">🧪 Practical</option>
         <option value="Assignment">📝 Assignment</option>
         <option value="Revision">📖 Revision</option>
+      </select>
+
+      <select id="mobilePrioritySelect" aria-label="Task priority">
+        <option value="High">🔴 High Priority</option>
+        <option value="Medium" selected>🟡 Medium Priority</option>
+        <option value="Low">🟢 Low Priority</option>
       </select>
 
       <button id="mobileAddTaskBtn">
