@@ -2278,5 +2278,61 @@ body.light .reward-item,
   }
 }
 
+/* Task Added Pop-up Notification */
+.task-popup {
+  position: fixed;
+  top: 30px;
+  right: -450px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--secondary);
+  border-radius: 20px;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  backdrop-filter: blur(25px);
+  box-shadow: var(--shadow);
+  z-index: 10000;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
+.task-popup.show {
+  right: 30px;
+}
 
+.task-popup i {
+  font-size: 28px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: bellRing 2s infinite;
+}
+
+.task-popup p {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0); }
+  10%, 30% { transform: rotate(15deg); }
+  20%, 40% { transform: rotate(-15deg); }
+}
+
+@media (max-width: 900px) {
+  .task-popup {
+    left: 15px;
+    right: 15px;
+    top: -150px;
+    transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .task-popup.show {
+    top: 15px;
+  }
+}

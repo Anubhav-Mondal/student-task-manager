@@ -390,6 +390,12 @@ function addTask() {
   saveData();
   renderTasks();
   updateDeadlineAlerts();
+
+  // Notify user to complete the new task ASAP
+  sendNotification("Quest Assigned", `COMPLETE ${text} TASK ASAP`);
+
+  // Show UI popup notification
+  showTaskPopup(`COMPLETE ${text.toUpperCase()} TASK ASAP`);
 }
 
 function renderTasks() {
@@ -1109,6 +1115,11 @@ function updateDeadlineAlerts() {
       alertDiv.classList.add("warning");
     }
 
+    // Send browser notification for tasks reaching critical urgency
+    if (urgencyData.urgency === "critical") {
+      sendNotification("Urgent Deadline!", `COMPLETE ${task.text} TASK ASAP`);
+    }
+
     const icon = urgencyData.urgency === "critical" ? "ri-alarm-warning-fill" : "ri-time-line";
     
     alertDiv.innerHTML = `
@@ -1235,6 +1246,13 @@ if (mobileAddTaskBtn) {
 
     saveData();
     renderTasks();
+
+    // Notify user to complete the new task ASAP (Mobile)
+    sendNotification("Quest Assigned", `COMPLETE ${text} TASK ASAP`);
+
+    // Show UI popup notification (Mobile)
+    showTaskPopup(`COMPLETE ${text.toUpperCase()} TASK ASAP`);
+
     toggleMobileDrawer(false); // Hide overlay
   });
 }
@@ -1327,6 +1345,11 @@ if (sortByDeadlineBtn) {
 
 // Dom Loaded
 document.addEventListener("DOMContentLoaded", () => {
+  // Request browser notification permissions on startup
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
   loadData();
   updateGamification();
   renderTasks();
@@ -1335,3 +1358,22 @@ document.addEventListener("DOMContentLoaded", () => {
   updateDisplay();
   initDeadlineUpdater();
 });
+
+// Feature: UI Pop-up Notification
+let taskPopupTimeout = null;
+function showTaskPopup(message) {
+  const popup = document.getElementById("taskPopup");
+  const msgText = document.getElementById("taskPopupMessage");
+  if (!popup || !msgText) return;
+  
+  // Clear existing timeout if user adds tasks rapidly
+  if (taskPopupTimeout) clearTimeout(taskPopupTimeout);
+  
+  msgText.textContent = message;
+  popup.classList.add("show");
+  
+  taskPopupTimeout = setTimeout(() => {
+    popup.classList.remove("show");
+    taskPopupTimeout = null;
+  }, 4000);
+}
