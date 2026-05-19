@@ -501,7 +501,7 @@ body {
 
 .task-box {
   display: grid;
-  grid-template-columns: 1fr 180px 200px 150px;
+  grid-template-columns: 1fr 130px 140px 170px 120px;
   gap: 12px;
   margin-bottom: 28px;
   padding: 20px;
@@ -756,6 +756,34 @@ body {
   }
 }
 
+/* Priority Badges Style */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.priority-badge.high {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+.priority-badge.medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+.priority-badge.low {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.25);
+}
 .empty-state {
   text-align: center;
   padding: 60px 40px;

@@ -126,24 +126,7 @@
       </div>
 
     </aside>
-
-    <!-- MAIN CONTENT -->
-    <section class="main-content">
-
-
-      <!-- TOP BAR -->
-      <div class="topbar">
-
-        <div>
-          <h2>Dashboard</h2>
-          <p>Conquer your goals one task at a time ✨</p>
-        </div>
-
-        <button id="themeToggle">
-          <i class="ri-moon-clear-fill"></i>
-        </button>
-
-      </div>
+    <!-- MAIN CONTENT REMOVED DUPLICATE HEADER -->
 
     <!-- MAIN CONTENT -->
     <section class="main-content">
@@ -191,6 +174,11 @@
                 <option value="Practical">🧪 Practical</option>
                 <option value="Assignment">📝 Assignment</option>
                 <option value="Revision">📖 Revision</option>
+              </select>
+              <select id="prioritySelect" title="Select priority level">
+                <option value="High">🚩 High</option>
+                <option value="Medium" selected>🔸 Medium</option>
+                <option value="Low">🔹 Low</option>
               </select>
               <input
                 type="datetime-local"
@@ -418,6 +406,12 @@
         <option value="Practical">🧪 Practical</option>
         <option value="Assignment">📝 Assignment</option>
         <option value="Revision">📖 Revision</option>
+      </select>
+
+      <select id="mobilePrioritySelect" aria-label="Task priority">
+        <option value="High">🚩 High Priority</option>
+        <option value="Medium" selected>🔸 Medium Priority</option>
+        <option value="Low">🔹 Low Priority</option>
       </select>
 
       <button id="mobileAddTaskBtn">
