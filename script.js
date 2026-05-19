@@ -1,127 +1,89 @@
-const themeBtns = document.querySelectorAll(".theme-btn");
+const taskInput = document.getElementById("taskInput");
+const addTaskBtn = document.getElementById("addTaskBtn");
+const taskList = document.getElementById("taskList");
 
-// Load and apply saved theme
-const savedTheme = localStorage.getItem("theme") || "light";
-applyTheme(savedTheme);
+const totalTasks = document.getElementById("totalTasks");
+const completedTasks = document.getElementById("completedTasks");
 
-function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-  
-  // Update active state in UI
-  themeBtns.forEach(btn => {
-    btn.classList.toggle("active", btn.getAttribute("data-theme") === theme);
-  });
-}
+const coinsText = document.getElementById("coins");
+const streakText = document.getElementById("streakCount");
 
-themeBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    applyTheme(btn.getAttribute("data-theme"));
-  });
-});
+const xpText = document.getElementById("xpText");
+const xpFill = document.getElementById("xpFill");
 
+const filterBtns = document.querySelectorAll(".filter-btn");
 
+const categorySelect =
+  document.getElementById("categorySelect");
 
+const questText =
+  document.getElementById("questText");
 
-function toggleTask(checkbox) {
-  const span = checkbox.nextElementSibling;
-  span.classList.toggle("completed");
+const themeToggle =
+  document.getElementById("themeToggle");
 
-  taskTracker();
-}
+let tasks = [];
 
+let currentFilter = "All";
 
+let coins = 0;
+let streak = 0;
+let xp = 120;
 
-const themeSwitcher = document.getElementById("themeSwitcher");
+/* ADD TASK */
 
-// Load saved theme
-const savedTheme = localStorage.getItem("theme") || "light";
-document.documentElement.setAttribute("data-theme", savedTheme);
+function addTask() {
 
-if (themeSwitcher) {
-  themeSwitcher.value = savedTheme;
+  const text = taskInput.value.trim();
 
-  themeSwitcher.addEventListener("change", function (e) {
-    const selectedTheme = e.target.value;
+  const category = categorySelect.value;
 
-    document.documentElement.setAttribute("data-theme", selectedTheme);
-    localStorage.setItem("theme", selectedTheme);
-  });
-}
+  if (text === "") return;
 
+  const task = {
 
+    id: Date.now(),
+    text,
+    category,
+    completed: false
 
-
-function toggleTask(checkbox) {
-  const span = checkbox.nextElementSibling;
-  span.classList.toggle("completed");
-
-  taskTracker();
-}
-
-
-function taskTracker() {
-  const tasks = document.querySelectorAll("#taskList li");
-  const completed = document.querySelectorAll("#taskList input:checked");
-
-  const empty = document.getElementById("emptyState");
-  if (empty) {
-    empty.style.display = tasks.length === 0 ? "block" : "none";
-  }
-
-  const stats = document.getElementById("taskStats");
-  if (stats) {
-    stats.innerText = `✅ ${completed.length} / ${tasks.length} completed`;
-  }
-
-  const celebration = document.getElementById("celebration");
-
-  if (tasks.length > 0 && tasks.length === completed.length) {
-    celebration.classList.remove("hidden");
-
-    setTimeout(() => {
-      celebration.classList.add("show");
-    }, 100);
-  } else {
-    celebration.classList.remove("show");
-    celebration.classList.add("hidden");
-  }
-}
-
-
-const backToTopBtn = document.getElementById("backToTop");
-if (backToTopBtn) {
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 50) {
-      backToTopBtn.classList.add("visible");
-    } else {
-      backToTopBtn.classList.remove("visible");
-    }
-  });
-
-  backToTopBtn.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-}
-document.addEventListener("DOMContentLoaded", () => {
-  const elements = {
-    taskForm: document.getElementById("taskForm"),
-    taskInput: document.getElementById("taskInput"),
-    categoryInput: document.getElementById("categoryInput"),
-    taskList: document.getElementById("taskList"),
-    taskStats: document.getElementById("taskStats"),
-    searchInput: document.getElementById("searchInput"),
-    sortAscBtn: document.getElementById("sortAscBtn"),
-    sortDescBtn: document.getElementById("sortDescBtn"),
-    filterButtons: document.getElementById("filterButtons"),
-    errorMsg: document.getElementById("errorMsg"),
-    themeSwitcher: document.getElementById("themeSwitcher"),
-    emptyState: document.getElementById("emptyState"),
-    celebration: document.getElementById("celebration"),
   };
 
+  tasks.push(task);
+
+  taskInput.value = "";
+
+  renderTasks();
+}
+
+/* RENDER */
+
+function renderTasks() {
+
+  taskList.innerHTML = "";
+
+  let filteredTasks = tasks;
+
+  if (currentFilter !== "All") {
+
+    filteredTasks = tasks.filter(
+      task => task.category === currentFilter
+    );
+
+  }
+
+  if (filteredTasks.length === 0) {
+
+    taskList.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="ri-ghost-2-line"></i>
+
+        <h3>No Tasks Yet</h3>
+
         <p>
-          Add tasks and begin your productivity journey ✨
+          Add tasks and begin your productivity adventure.
         </p>
 
       </div>
@@ -140,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     div.innerHTML = `
+
       <div class="task-left">
 
         <div class="check-btn"></div>
@@ -169,6 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </button>
 
       </div>
+
     `;
 
     /* COMPLETE */
@@ -181,17 +145,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (task.completed) {
 
           coins += 10;
-
           streak += 1;
-
           xp += 20;
 
         } else {
 
           coins -= 10;
-
           streak -= 1;
-
           xp -= 20;
 
         }
@@ -225,7 +185,10 @@ document.addEventListener("DOMContentLoaded", () => {
           task.text
         );
 
-        if (updated !== null && updated.trim() !== "") {
+        if (
+          updated !== null &&
+          updated.trim() !== ""
+        ) {
 
           task.text = updated;
 
@@ -248,27 +211,28 @@ function updateStats() {
 
   totalTasks.textContent = tasks.length;
 
-  const completed = tasks.filter(
-    task => task.completed
-  ).length;
+  const completed =
+    tasks.filter(task => task.completed).length;
 
   completedTasks.textContent = completed;
+
+  questText.textContent = `${completed} / 5`;
 }
 
 /* GAMIFICATION */
 
 function updateGamification() {
 
-  points.textContent = coins;
+  coinsText.textContent = coins;
 
-  streakCount.textContent = streak;
+  streakText.textContent = streak;
 
   xpText.textContent = `${xp} / 300 XP`;
 
   xpFill.style.width = `${xp / 3}%`;
 }
 
-/* FILTERS */
+/* FILTER */
 
 filterBtns.forEach(btn => {
 
@@ -305,20 +269,38 @@ taskInput.addEventListener("keypress", e => {
   }
 
 });
+
+/* BUTTON */
+
+addTaskBtn.addEventListener(
+  "click",
+  addTask
+);
+
+/* POMODORO TIMER */
+
 let studyTime = 25 * 60;
+
 let breakTime = 5 * 60;
 
 let currentTime = studyTime;
 
 let timer;
+
 let isStudy = true;
 
 function updateDisplay() {
 
-  let minutes = Math.floor(currentTime / 60);
-  let seconds = currentTime % 60;
+  const minutes =
+    Math.floor(currentTime / 60);
 
-  seconds = seconds < 10 ? "0" + seconds : seconds;
+  let seconds =
+    currentTime % 60;
+
+  seconds =
+    seconds < 10
+      ? "0" + seconds
+      : seconds;
 
   document.getElementById("timer").innerText =
     `${minutes}:${seconds}`;
@@ -337,27 +319,31 @@ function startTimer() {
     if (currentTime <= 0) {
 
       clearInterval(timer);
+
       timer = null;
 
       if (isStudy) {
 
-        alert("Study session complete! Take a break.");
+        alert("Study session completed!");
 
         isStudy = false;
+
         currentTime = breakTime;
 
-        document.getElementById("mode").innerText =
-          "Break Time";
+        document.getElementById("modeText")
+          .innerText = "Break Time";
 
       } else {
 
-        alert("Break over! Back to study.");
+        alert("Break finished!");
 
         isStudy = true;
+
         currentTime = studyTime;
 
-        document.getElementById("mode").innerText =
-          "Study Time";
+        document.getElementById("modeText")
+          .innerText = "Study Time";
+
       }
 
       updateDisplay();
@@ -371,23 +357,24 @@ function startTimer() {
 function pauseTimer() {
 
   clearInterval(timer);
+
   timer = null;
 }
 
 function resetTimer() {
 
   clearInterval(timer);
+
   timer = null;
 
   isStudy = true;
+
   currentTime = studyTime;
 
-  document.getElementById("mode").innerText =
-    "Study Time";
+  document.getElementById("modeText")
+    .innerText = "Study Time";
 
   updateDisplay();
 }
 
 updateDisplay();
-new Notification("Break Time!");
-

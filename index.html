@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title> Gamified Task Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Google Font -->
+  <title>TaskQuest • Gamified Productivity</title>
+
+  <!-- GOOGLE FONT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- REMIX ICON -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -27,17 +33,19 @@
     <aside class="sidebar">
 
       <div class="logo-box">
+
         <div class="logo">
-          <i class="ri-gamepad-line"></i>
+          <i class="ri-gamepad-fill"></i>
         </div>
 
         <div>
-          <h1>Gamified Task Tracker</h1>
-          <p>Level Up Your Productivity</p>
+          <h1>TaskQuest</h1>
+          <p>Level Up Productivity</p>
         </div>
+
       </div>
 
-      <!-- USER CARD -->
+      <!-- PROFILE CARD -->
       <div class="profile-card">
 
         <div class="avatar">
@@ -48,15 +56,18 @@
 
         <p>Focus Warrior ⚔️</p>
 
-        <div class="xp-container">
-          <div class="xp-info">
-            <span>Level 3</span>
+        <div class="level-box">
+
+          <div class="level-info">
+            <span>Level 5</span>
             <span id="xpText">120 / 300 XP</span>
           </div>
 
           <div class="xp-bar">
             <div class="xp-fill" id="xpFill"></div>
           </div>
+
+        </div>
 
       </div>
 
@@ -70,7 +81,7 @@
         </div>
 
         <div class="stat-card">
-          <i class="ri-checkbox-circle-line"></i>
+          <i class="ri-checkbox-circle-fill"></i>
           <h3 id="completedTasks">0</h3>
           <p>Completed</p>
         </div>
@@ -78,42 +89,61 @@
         <div class="stat-card">
           <i class="ri-fire-fill"></i>
           <h3 id="streakCount">0</h3>
-          <p>Day Streak</p>
+          <p>Streak</p>
         </div>
 
         <div class="stat-card">
-          <i class="ri-star-smile-fill"></i>
-          <h3 id="points">0</h3>
+          <i class="ri-coin-fill"></i>
+          <h3 id="coins">0</h3>
           <p>Coins</p>
         </div>
 
       </div>
 
-      <!-- BADGES -->
-      <div class="badges-card">
+      <!-- ACHIEVEMENTS -->
+      <div class="achievement-card">
 
-        <div class="card-title">
+        <div class="section-title">
           <i class="ri-medal-fill"></i>
           <span>Achievements</span>
         </div>
 
         <div class="badges">
 
-          <div class="badge unlocked">
-            🥇
-          </div>
+          <div class="badge unlocked">🔥</div>
+          <div class="badge unlocked">⚡</div>
+          <div class="badge">👑</div>
+          <div class="badge">🚀</div>
 
-          <div class="badge unlocked">
-            🔥
-          </div>
+        </div>
 
-          <div class="badge">
-            🚀
-          </div>
+      </div>
 
-          <div class="badge">
-            👑
-          </div>
+      <!-- POMODORO -->
+      <div class="pomodoro-card">
+
+        <div class="section-title">
+          <i class="ri-timer-2-fill"></i>
+          <span>Focus Mode</span>
+        </div>
+
+        <h2 id="modeText">Study Time</h2>
+
+        <div class="timer" id="timer">25:00</div>
+
+        <div class="timer-buttons">
+
+          <button onclick="startTimer()">
+            <i class="ri-play-fill"></i>
+          </button>
+
+          <button onclick="pauseTimer()">
+            <i class="ri-pause-fill"></i>
+          </button>
+
+          <button onclick="resetTimer()">
+            <i class="ri-restart-fill"></i>
+          </button>
 
         </div>
 
@@ -124,12 +154,12 @@
     <!-- MAIN -->
     <section class="main-content">
 
-      <!-- TOP -->
+      <!-- TOP BAR -->
       <div class="topbar">
 
         <div>
           <h2>Dashboard</h2>
-          <p>Complete tasks and earn rewards ✨</p>
+          <p>Conquer your goals one task at a time ✨</p>
         </div>
 
         <button id="themeToggle">
@@ -138,24 +168,28 @@
 
       </div>
 
-      <!-- ADD TASK -->
+      <!-- INPUT -->
       <div class="task-box">
 
         <input
           type="text"
           id="taskInput"
-          placeholder="Enter your next task..."
-        />
+          placeholder="Add your next mission..."
+        >
 
         <select id="categorySelect">
+
           <option value="Theory">📘 Theory</option>
-          <option value="Practical">🧪 Practical</option>
           <option value="Assignment">📝 Assignment</option>
+          <option value="Practical">🧪 Practical</option>
           <option value="Revision">📖 Revision</option>
+
         </select>
 
         <button id="addTaskBtn">
-          <i class="ri-add-line"></i>Add Task</button>
+          <i class="ri-add-line"></i>
+          Add Task
+        </button>
 
       </div>
 
@@ -170,12 +204,12 @@
           Theory
         </button>
 
-        <button class="filter-btn" data-filter="Practical">
-          Practical
-        </button>
-
         <button class="filter-btn" data-filter="Assignment">
           Assignment
+        </button>
+
+        <button class="filter-btn" data-filter="Practical">
+          Practical
         </button>
 
         <button class="filter-btn" data-filter="Revision">
@@ -184,7 +218,21 @@
 
       </div>
 
-      <!-- TASKS -->
+      <!-- DAILY QUEST -->
+      <div class="daily-quest">
+
+        <div>
+          <h3>Daily Quest</h3>
+          <p>Complete 5 tasks today to earn bonus XP ⚡</p>
+        </div>
+
+        <div class="quest-progress">
+          <span id="questText">0 / 5</span>
+        </div>
+
+      </div>
+
+      <!-- TASK LIST -->
       <div class="task-list" id="taskList">
 
         <div class="empty-state">
@@ -193,37 +241,18 @@
 
           <h3>No Tasks Yet</h3>
 
-          <p>
-            Add tasks and start your productivity adventure.
-          </p>
+          <p>Add tasks and begin your productivity adventure.</p>
 
         </div>
 
       </div>
 
     </section>
-    <div class="study-mode">
-
-  <h2 id="mode">Study Time</h2>
-
-  <div class="timer" id="timer">
-    25:00
-  </div>
-
-  <div class="buttons">
-  <button onclick="startTimer()"><i class="fa-solid fa-play"></i> Start</button>
-  <button onclick="pauseTimer()"><i class="fa-solid fa-pause"></i> Pause</button>
-  <button onclick="resetTimer()"><i class="fa-solid fa-rotate-right"></i> Reset</button>
-</div>
-
-
-</div>
-
-  </main>
 
   </main>
 
   <script src="script.js"></script>
 
 </body>
+
 </html>
