@@ -570,11 +570,13 @@ function addTask() {
 
   updateDeadlineAlerts();
 
+
   // Notify user to complete the new task ASAP
   sendNotification("Quest Assigned", `COMPLETE ${text} TASK ASAP`);
 
   // Show UI popup notification
   showTaskPopup(`COMPLETE ${text.toUpperCase()} TASK ASAP`);
+
 
   announce(`Task added: "${text}". Category: ${category}, Priority: ${priority}.`);
 
@@ -632,7 +634,6 @@ function createTaskEl(task) {
 
 
 
-
     div.innerHTML = `
       <div class="task-left">
         <div class="check-btn" tabindex="0" aria-label="Toggle completed task"></div>
@@ -666,6 +667,7 @@ function createTaskEl(task) {
       coins = Math.max(0, coins - 10);
       streak = Math.max(0, streak - 1);
       xp = Math.max(0, xp - 20);
+>>>>>>> main
 
 
       if (analyticsData.completedTasksPerDay[todayStr]) {
@@ -1923,10 +1925,12 @@ function updateDeadlineAlerts() {
       alertDiv.classList.add("warning");
     }
 
+
     // Send browser notification for tasks reaching critical urgency
     if (urgencyData.urgency === "critical") {
       sendNotification("Urgent Deadline!", `COMPLETE ${task.text} TASK ASAP`);
     }
+
 
     const icon = urgencyData.urgency === "critical" ? "ri-alarm-warning-fill" : "ri-time-line";
     
