@@ -309,6 +309,68 @@
               </button>
             </div>
 
+            <!-- BREAK REMINDER CARD -->
+            <div class="break-reminder-card glass" id="breakReminderCard">
+              <div class="break-header">
+                <div class="break-title-wrap">
+                  <i class="ri-rest-time-line"></i>
+                  <span>Break Reminder</span>
+                </div>
+                <span class="break-status-badge" id="breakStatusBadge">OFF</span>
+              </div>
+
+              <div class="break-interval-row">
+                <label for="breakIntervalSelect">Remind every</label>
+                <div class="break-select-wrap">
+                  <select id="breakIntervalSelect" aria-label="Break interval">
+                    <option value="15">15 min</option>
+                    <option value="20">20 min</option>
+                    <option value="25" selected>25 min</option>
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">60 min</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="break-countdown-wrap" id="breakCountdownWrap">
+                <div class="break-ring-container">
+                  <svg class="break-ring" viewBox="0 0 60 60" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="breakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#10b981"/>
+                        <stop offset="100%" stop-color="#06b6d4"/>
+                      </linearGradient>
+                    </defs>
+                    <circle class="break-ring-bg" cx="30" cy="30" r="26"/>
+                    <circle class="break-ring-fill" id="breakRingFill" cx="30" cy="30" r="26"/>
+                  </svg>
+                  <span class="break-time-display" id="breakTimeDisplay">25:00</span>
+                </div>
+              </div>
+
+              <div class="break-controls">
+                <button class="break-ctrl-btn break-start-btn" id="breakStartBtn" aria-label="Start break reminder">
+                  <i class="ri-play-fill"></i>
+                </button>
+                <button class="break-ctrl-btn break-pause-btn" id="breakPauseBtn" aria-label="Pause break reminder" disabled>
+                  <i class="ri-pause-fill"></i>
+                </button>
+                <button class="break-ctrl-btn break-reset-btn" id="breakResetBtn" aria-label="Reset break reminder">
+                  <i class="ri-restart-fill"></i>
+                </button>
+              </div>
+
+              <div class="break-sound-row">
+                <i class="ri-volume-up-line"></i>
+                <span>Sound alert</span>
+                <label class="break-toggle-switch" for="breakSoundToggle">
+                  <input type="checkbox" id="breakSoundToggle" checked />
+                  <span class="break-toggle-track"></span>
+                </label>
+              </div>
+            </div>
+
           </div>
         </div>
         
@@ -747,6 +809,21 @@
 
   <!-- ACCESSIBILITY ANNOUNCER -->
   <div id="srAnnouncement" class="sr-only" aria-live="polite"></div>
+
+  <!-- BREAK REMINDER TOAST POPUP -->
+  <div class="break-toast" id="breakToast" role="alert" aria-live="assertive">
+    <div class="break-toast-inner">
+      <div class="break-toast-emoji" id="breakToastEmoji">☕</div>
+      <div class="break-toast-body">
+        <h4 class="break-toast-title">Time for a Break!</h4>
+        <p class="break-toast-msg" id="breakToastMsg">You've been studying for 25 minutes. Step away, stretch, and hydrate!</p>
+      </div>
+      <button class="break-toast-close" id="breakToastClose" aria-label="Dismiss break reminder">
+        <i class="ri-close-line"></i>
+      </button>
+    </div>
+    <div class="break-toast-progress" id="breakToastProgress"></div>
+  </div>
 
 
   <script src="script.js"></script>

@@ -2362,3 +2362,215 @@ function refreshQuote(slot) {
 document.getElementById("quoteRefresh1")?.addEventListener("click", () => refreshQuote(1));
 document.getElementById("quoteRefresh2")?.addEventListener("click", () => refreshQuote(2));
 
+// ==========================================================================
+// BREAK REMINDER SYSTEM
+// ==========================================================================
+
+(function () {
+  // --- DOM refs ---
+  const breakStartBtn   = document.getElementById("breakStartBtn");
+  const breakPauseBtn   = document.getElementById("breakPauseBtn");
+  const breakResetBtn   = document.getElementById("breakResetBtn");
+  const breakTimeDisp   = document.getElementById("breakTimeDisplay");
+  const breakStatusBadge= document.getElementById("breakStatusBadge");
+  const breakIntervalSel= document.getElementById("breakIntervalSelect");
+  const breakRingFill   = document.getElementById("breakRingFill");
+  const breakSoundToggle= document.getElementById("breakSoundToggle");
+  const breakToast      = document.getElementById("breakToast");
+  const breakToastClose = document.getElementById("breakToastClose");
+  const breakToastMsg   = document.getElementById("breakToastMsg");
+  const breakToastProgress = document.getElementById("breakToastProgress");
+
+  if (!breakStartBtn) return; // Guard: elements not in DOM
+
+  // --- State ---
+  const RING_CIRCUMFERENCE = 163.4; // 2 * π * 26
+  let totalSecs   = 25 * 60;
+  let remainSecs  = totalSecs;
+  let timerHandle = null;
+  let toastHandle = null;
+  let running     = false;
+
+  const BREAK_EMOJIS = ["☕", "🧘", "🚶", "💧", "🌿", "🎵", "😌", "🙆"];
+  const BREAK_MSGS = [
+    m => `You've been focused for ${m} minutes. Take a 5-min stretch break!`,
+    m => `${m} minutes of solid work! Hydrate and rest your eyes. 💧`,
+    m => `Great focus session (${m} min)! Stand up and breathe deeply. 🌿`,
+    m => `${m} minutes done! Your brain deserves a short reset. 🧠`,
+    m => `Impressive! ${m} minutes of study. Time to recharge for 5 minutes. 🔋`,
+  ];
+
+  // --- Helpers ---
+  function padTwo(n) { return String(n).padStart(2, "0"); }
+
+  function formatTime(s) {
+    return `${padTwo(Math.floor(s / 60))}:${padTwo(s % 60)}`;
+  }
+
+  function updateRing() {
+    const progress = remainSecs / totalSecs;
+    const offset   = RING_CIRCUMFERENCE * (1 - progress);
+    breakRingFill.style.strokeDashoffset = offset;
+  }
+
+  function updateDisplay() {
+    breakTimeDisp.textContent = formatTime(remainSecs);
+    updateRing();
+  }
+
+  function setStatus(state) {
+    if (state === "running") {
+      breakStatusBadge.textContent = "ON";
+      breakStatusBadge.classList.add("active");
+    } else if (state === "paused") {
+      breakStatusBadge.textContent = "PAUSE";
+      breakStatusBadge.classList.remove("active");
+    } else {
+      breakStatusBadge.textContent = "OFF";
+      breakStatusBadge.classList.remove("active");
+    }
+  }
+
+  function applyInterval() {
+    const mins = parseInt(breakIntervalSel.value, 10);
+    totalSecs  = mins * 60;
+    remainSecs = totalSecs;
+    updateDisplay();
+    breakToastMsg.textContent = BREAK_MSGS[0](mins);
+  }
+
+  // --- Sound (Web Audio API) ---
+  function playBreakSound() {
+    if (!breakSoundToggle.checked) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Gentle chime: three ascending notes
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      notes.forEach((freq, i) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.22);
+        gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * 0.22 + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.22 + 0.5);
+        osc.start(ctx.currentTime + i * 0.22);
+        osc.stop(ctx.currentTime + i * 0.22 + 0.55);
+      });
+    } catch (_) { /* no AudioContext support */ }
+  }
+
+  // --- Toast ---
+  function showBreakToast() {
+    const mins = parseInt(breakIntervalSel.value, 10);
+    const msgIdx = Math.floor(Math.random() * BREAK_MSGS.length);
+    const emojiIdx = Math.floor(Math.random() * BREAK_EMOJIS.length);
+
+    document.getElementById("breakToastEmoji").textContent = BREAK_EMOJIS[emojiIdx];
+    breakToastMsg.textContent = BREAK_MSGS[msgIdx](mins);
+
+    breakToast.classList.add("show");
+
+    // Animated progress bar auto-dismiss in 8 seconds
+    const AUTO_DISMISS_MS = 8000;
+    breakToastProgress.style.transition = "none";
+    breakToastProgress.style.transform  = "scaleX(1)";
+    // Force reflow
+    breakToastProgress.offsetHeight;
+    breakToastProgress.style.transition = `transform ${AUTO_DISMISS_MS}ms linear`;
+    breakToastProgress.style.transform  = "scaleX(0)";
+
+    clearTimeout(toastHandle);
+    toastHandle = setTimeout(dismissBreakToast, AUTO_DISMISS_MS);
+
+    playBreakSound();
+
+    // Vibration if supported
+    if ("vibrate" in navigator) {
+      navigator.vibrate([200, 100, 200]);
+    }
+
+    announce("Break time! You've earned a rest.");
+  }
+
+  function dismissBreakToast() {
+    breakToast.classList.remove("show");
+    clearTimeout(toastHandle);
+  }
+
+  // --- Timer core ---
+  function tick() {
+    if (remainSecs <= 0) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      running = false;
+      remainSecs = 0;
+      updateDisplay();
+      showBreakToast();
+      // Auto-restart after toast is dismissed
+      setStatus("off");
+      breakStartBtn.disabled = false;
+      breakPauseBtn.disabled = true;
+      return;
+    }
+    remainSecs--;
+    updateDisplay();
+  }
+
+  // --- Controls ---
+  breakStartBtn.addEventListener("click", () => {
+    if (running) return;
+    if (remainSecs <= 0) applyInterval();
+    running = true;
+    setStatus("running");
+    breakStartBtn.disabled = true;
+    breakPauseBtn.disabled = false;
+    timerHandle = setInterval(tick, 1000);
+  });
+
+  breakPauseBtn.addEventListener("click", () => {
+    if (!running) return;
+    running = false;
+    clearInterval(timerHandle);
+    timerHandle = null;
+    setStatus("paused");
+    breakStartBtn.disabled = false;
+    breakPauseBtn.disabled = true;
+  });
+
+  breakResetBtn.addEventListener("click", () => {
+    running = false;
+    clearInterval(timerHandle);
+    timerHandle = null;
+    applyInterval();
+    setStatus("off");
+    breakStartBtn.disabled = false;
+    breakPauseBtn.disabled = true;
+  });
+
+  breakIntervalSel.addEventListener("change", () => {
+    const wasRunning = running;
+    if (running) {
+      running = false;
+      clearInterval(timerHandle);
+      timerHandle = null;
+    }
+    applyInterval();
+    setStatus("off");
+    breakStartBtn.disabled = false;
+    breakPauseBtn.disabled = true;
+    // If it was running, auto-restart with new interval
+    if (wasRunning) breakStartBtn.click();
+  });
+
+  breakToastClose.addEventListener("click", dismissBreakToast);
+
+  // --- Init ---
+  applyInterval();
+  breakPauseBtn.disabled = true;
+})();
+
+
