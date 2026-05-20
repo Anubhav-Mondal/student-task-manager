@@ -13,23 +13,22 @@ const xpFill = document.getElementById("xpFill");
 const xpText = document.getElementById("xpText");
 
 // Filters & Navigation
-const filterBtns = document.querySelectorAll(".filter-btn");
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
+const filterBtns = document.querySelectorAll(".filters .filter-btn[data-filter]");
+const sortBtns = document.querySelectorAll(".filters .filter-btn[data-sort]");
 
-// Global states
+// Global states (Removed duplicates)
 let tasks = [];
 let currentFilter = "All";
-
+let currentSort = "default";
 let searchQuery = "";
-
-let currentView = "list"; // "list" or "board"
-
+let currentView = "list";
 let coins = 0;
 let streak = 0;
 let xp = 120;
-let currentStudyView = "weekly"; // "weekly" or "monthly"
-let profile = { name: "Student Hero", gender: "Male", class: "Class 10" };
+let currentStudyView = "weekly";
+let profile = { name: "Student Hero", gender: "Male", class: "Class 10", title: "Focus Warrior ⚔️", photo: null };
 
 // Chart.js instances
 let studyChartInstance = null;
@@ -210,8 +209,10 @@ function loadData() {
   if (savedProfile) {
     try {
       profile = JSON.parse(savedProfile);
+      if (!profile.title) profile.title = "Focus Warrior ⚔️";
+      if (!profile.photo) profile.photo = null;
     } catch (e) {
-      profile = { name: "Student Hero", gender: "Male", class: "Class 10" };
+      profile = { name: "Student Hero", gender: "Male", class: "Class 10", title: "Focus Warrior ⚔️", photo: null };
     }
   }
 }
@@ -271,6 +272,13 @@ function getFormattedDate(date) {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function getFormattedDateTime(date) {
+  const d = getFormattedDate(date);
+  const hh = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${d} ${hh}:${min}`;
 }
 
 // Helper to check if theme is currently light
@@ -551,7 +559,7 @@ function addTask() {
     category,
     priority,
     completed: false,
-    createdAt: getFormattedDate(new Date()),
+    createdAt: getFormattedDateTime(new Date()),
     deadline: deadline || null
   };
 
@@ -590,9 +598,6 @@ function createTaskEl(task) {
   if (task.completed) {
     div.classList.add("completed");
   }
-  if (searchQuery) {
-    filteredTasks = filteredTasks.filter(task => task.text.toLowerCase().includes(searchQuery));
-  }
 
   const pri = task.priority || "Medium";
   const catEmoji = getCategoryEmoji(task.category);
@@ -606,6 +611,7 @@ function createTaskEl(task) {
         <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
           <p class="task-category" style="margin: 0;">${catEmoji} ${task.category}</p>
           <span class="priority-pill priority-${pri.toLowerCase()}">${pri}</span>
+          <span class="task-timestamp" style="font-size: 11px; color: var(--text-light); opacity: 0.8;"><i class="ri-history-line"></i> ${task.createdAt}</span>
         </div>
       </div>
     </div>
@@ -881,6 +887,25 @@ function renderTasks() {
       filteredTasks = tasks.filter(task => task.category === currentFilter);
     }
 
+    // Apply sort logic
+    if (currentSort === "priority") {
+      const priorityOrder = { "High": 1, "Medium": 2, "Low": 3 };
+      filteredTasks.sort((a, b) => (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99));
+    } else if (currentSort === "alphabetical") {
+      filteredTasks.sort((a, b) => a.text.localeCompare(b.text));
+    } else if (currentSort === "deadline") {
+      filteredTasks.sort((a, b) => {
+        const aD = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        const bD = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        return aD - bD;
+      });
+    }
+
+    // Apply search query
+    if (searchQuery) {
+      filteredTasks = filteredTasks.filter(task => task.text.toLowerCase().includes(searchQuery));
+    }
+
     if (filteredTasks.length === 0) {
       taskList.innerHTML = `
         <div class="empty-state">
@@ -940,10 +965,11 @@ function updateStats() {
   const completedTasks = document.getElementById("completedTasks");
   if (totalTasks) totalTasks.textContent = tasks.length;
   if (completedTasks) completedTasks.textContent = tasks.filter(task => task.completed).length;
+  updateDailyQuest();
 }
-
 function updateGamification() {
-  points.textContent = coins;
+  const pointsEl = document.getElementById("coins");
+  if (pointsEl) pointsEl.textContent = coins;
   totalTasks.textContent = tasks.length;
   completedTasks.textContent = getCompletedQuestsCount();
   streakCount.textContent = streak;
@@ -966,6 +992,15 @@ function updateGamification() {
   xpFill.classList.remove("pulse");
   void xpFill.offsetWidth; // Trigger DOM reflow to restart animation
   xpFill.classList.add("pulse");
+}
+
+function updateDailyQuest() {
+  const completedToday = tasks.filter(t => t.completed && t.createdAt && t.createdAt.startsWith(getFormattedDate(new Date()))).length;
+  const questText = document.getElementById("questText");
+  if (questText) {
+    questText.textContent = `${completedToday} / 5`;
+    if (completedToday >= 5) triggerConfetti();
+  }
 }
 
 function updateAnalyticsStreak(todayStr) {
@@ -2057,7 +2092,7 @@ if (mobileAddTaskBtn) {
       category,
       priority,
       completed: false,
-      createdAt: getFormattedDate(new Date())
+      createdAt: getFormattedDateTime(new Date())
     };
 
     tasks.push(task);
@@ -2147,6 +2182,34 @@ filterBtns.forEach(btn => {
     renderTasks();
   });
 });
+
+// Sort Button Event Listeners
+sortBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    sortBtns.forEach(b => {
+      b.classList.remove("active");
+      b.setAttribute("aria-pressed", "false");
+    });
+    btn.classList.add("active");
+    btn.setAttribute("aria-pressed", "true");
+    currentSort = btn.dataset.sort;
+    renderTasks();
+  });
+});
+
+// Logic to clear all tasks at once
+const resetTasksBtn = document.getElementById("resetTasksBtn");
+if (resetTasksBtn) {
+  resetTasksBtn.addEventListener("click", () => {
+    if (confirm("Are you sure you want to clear all quests? This action cannot be undone.")) {
+      tasks = [];
+      saveData();
+      renderTasks();
+      updateGamification();
+      announce("All tasks have been cleared successfully.");
+    }
+  });
+}
 
 // Theme selection dot selectors click listeners
 document.querySelectorAll(".theme-dot").forEach(dot => {
@@ -2255,17 +2318,23 @@ function renderProfile() {
   const avatarPlaceholder = document.getElementById("profileIconPlaceholder");
 
   if (nameEl) nameEl.textContent = profile.name || "Student Hero";
-  if (classEl) classEl.textContent = `${profile.class || "Class 10"} • Focus Warrior ⚔️`;
+  if (classEl) classEl.textContent = `${profile.class || "Class 10"} • ${profile.title}`;
 
   if (avatarImg && avatarPlaceholder) {
-    if (profile.gender === "Female") {
-      avatarImg.src = "female_avatar.svg";
+    if (profile.photo) {
+      avatarImg.src = profile.photo;
       avatarImg.style.display = "block";
       avatarPlaceholder.style.display = "none";
     } else {
-      avatarImg.src = "male_avatar.svg";
-      avatarImg.style.display = "block";
-      avatarPlaceholder.style.display = "none";
+      if (profile.gender === "Female") {
+        avatarImg.src = "female_avatar.svg";
+        avatarImg.style.display = "block";
+        avatarPlaceholder.style.display = "none";
+      } else {
+        avatarImg.src = "male_avatar.svg";
+        avatarImg.style.display = "block";
+        avatarPlaceholder.style.display = "none";
+      }
     }
   }
 }
@@ -2280,6 +2349,12 @@ document.getElementById("profileCard")?.addEventListener("click", () => {
   document.getElementById("profileInputName").value = profile.name || "";
   document.getElementById("profileInputClass").value = profile.class || "";
   document.getElementById("profileInputGender").value = profile.gender || "Male";
+  document.getElementById("profileInputTitle").value = profile.title || "Focus Warrior ⚔️";
+
+  const photoInput = document.getElementById("profileInputPhoto");
+  if (photoInput) {
+    photoInput.value = "";
+  }
 
   overlay.classList.add("active");
   modal.classList.add("active");
@@ -2296,11 +2371,18 @@ function closeProfileModal() {
 document.getElementById("closeProfileModalBtn")?.addEventListener("click", closeProfileModal);
 document.getElementById("profileModalOverlay")?.addEventListener("click", closeProfileModal);
 
+document.getElementById("editProfileSidebarBtn")?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  document.getElementById("profileCard").click();
+});
+
 // Save Profile
 document.getElementById("saveProfileBtn")?.addEventListener("click", (e) => {
   const nameInput = document.getElementById("profileInputName");
   const classInput = document.getElementById("profileInputClass");
   const genderInput = document.getElementById("profileInputGender");
+  const titleInput = document.getElementById("profileInputTitle");
+  const photoInput = document.getElementById("profileInputPhoto");
 
   const newName = nameInput.value.trim();
   if (newName === "") {
@@ -2313,29 +2395,72 @@ document.getElementById("saveProfileBtn")?.addEventListener("click", (e) => {
   profile.name = newName;
   profile.class = classInput.value.trim();
   profile.gender = genderInput.value;
+  profile.title = titleInput.value;
 
-  saveData();
-  renderProfile();
-  closeProfileModal();
-  triggerConfetti();
-  announce("Profile updated successfully.");
+  if (photoInput && photoInput.files && photoInput.files[0]) {
+    const file = photoInput.files[0];
+    if (file.size > 1024 * 1024) {
+      alert("Image is too large. Please select an image under 1MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      profile.photo = ev.target.result;
+      saveData();
+      renderProfile();
+      closeProfileModal();
+      triggerConfetti();
+      announce("Profile updated successfully.");
+    };
+    reader.readAsDataURL(file);
+  } else {
+    saveData();
+    renderProfile();
+    closeProfileModal();
+    triggerConfetti();
+    announce("Profile updated successfully.");
+  }
 });
+
 // Apply formatting commands
 function formatDoc(cmd) {
   document.execCommand(cmd, false, null);
 }
 
-// Save notes to localStorage
-function saveNotes() {
-  const content = document.getElementById("notesEditor").innerHTML;
-  localStorage.setItem("studyNotes", content);
-  alert("Notes saved!");
-}
-
 // Load notes on page load
-window.onload = function() {
-  const saved = localStorage.getItem("studyNotes");
-  if (saved) {
-    document.getElementById("notesEditor").innerHTML = saved;
+window.addEventListener('load', () => {
+  const savedNotes = localStorage.getItem("studyNotes");
+  const notesEditor = document.getElementById("notesEditor");
+  if (notesEditor && savedNotes) {
+    notesEditor.innerHTML = savedNotes;
   }
-};
+  
+  // Dynamic Greeting for the Profile
+  const nameEl = document.getElementById("profileNameDisplay");
+  if (nameEl && profile.name) {
+    const hour = new Date().getHours();
+    let greeting = "Ready for a quest?";
+    if (hour < 12) greeting = "Good Morning, Hero!";
+    else if (hour < 18) greeting = "Good Afternoon, Warrior!";
+    else greeting = "Good Evening, Scholar!";
+    // Temporarily show greeting or just keep name
+  }
+});
+
+/**
+ * UI Helper: Show a floating task confirmation popup
+ */
+function showTaskPopup(message) {
+  const popup = document.createElement("div");
+  popup.className = "task-popup";
+  popup.innerHTML = `
+    <i class="ri-sparkling-fill" style="color: var(--secondary); font-size: 24px;"></i>
+    <p>${message}</p>
+  `;
+  document.body.appendChild(popup);
+  setTimeout(() => popup.classList.add("show"), 100);
+  setTimeout(() => {
+    popup.classList.remove("show");
+    setTimeout(() => popup.remove(), 600);
+  }, 3500);
+}
