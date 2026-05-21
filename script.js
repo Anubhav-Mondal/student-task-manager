@@ -2457,6 +2457,20 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPerformance();
   renderProfile();
 
+  // Footer: set dynamic year and small accessibility tweaks
+  const footerCopyright = document.getElementById('footerCopyright');
+  if (footerCopyright) {
+    const year = new Date().getFullYear();
+    footerCopyright.innerHTML = `&copy; ${year} TaskQuest. All rights reserved.`;
+  }
+
+  // Ensure social links have titles for hover/tooltip
+  document.querySelectorAll('.footer-links a').forEach(a => {
+    if (!a.getAttribute('title')) {
+      a.setAttribute('title', a.getAttribute('aria-label') || 'External link');
+    }
+  });
+
   checkOverduePenalties();
   initDeadlineUpdater();
 
