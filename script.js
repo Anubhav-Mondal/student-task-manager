@@ -25,6 +25,7 @@ if (taskTemplate) {
   });
 }
 
+
 // Footer enhancements: newsletter subscribe, dynamic year, back-to-top
 document.addEventListener('DOMContentLoaded', () => {
   // Dynamic year
@@ -72,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 // Sidebar metrics elements
 const totalTasks = document.getElementById("totalTasks");
@@ -406,6 +408,7 @@ function saveData() {
 }
 
 // ==========================
+<<<<<<< productivity-branch
 // Notifications Center
 // ==========================
 let notifications = [];
@@ -547,6 +550,7 @@ function toggleNotificationPanel(show) {
 
 
 // ==========================
+
 // Drag & Drop: Persist order
 // ==========================
 function enableDragAndDrop() {
@@ -2429,6 +2433,7 @@ function updateAnalyticsDashboard() {
   const rateEl = document.getElementById("analyticsCompletionRate");
   if (rateEl) rateEl.textContent = `${completionRate}%`;
 
+<<<<<<< productivity-branch
   const todayScoreEl = document.getElementById("analyticsDailyScore");
   const dailyHighScoreEl = document.getElementById("analyticsDailyHighScore");
   const bestDayEl = document.getElementById("analyticsBestProductiveDay");
@@ -2443,6 +2448,7 @@ function updateAnalyticsDashboard() {
     const minutes = Math.round(analyticsData.productivityRecords?.highestStudyMinutes || 0);
     bestStudyRecordEl.textContent = minutes > 0 ? `${minutes} min` : '—';
   }
+
 
   const today = new Date();
   today.setHours(23, 59, 59, 999);
@@ -3462,6 +3468,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderProfile();
   renderSubjectTracker();
 
+<<<<<<< productivity-branch
   // Notifications init
   loadNotifications();
   renderNotificationPanel();
@@ -3527,6 +3534,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (exportCsvBtn) exportCsvBtn.addEventListener('click', (e) => { e.stopPropagation(); exportAnalyticsCSV(); exportMenu.style.display='none'; });
   if (exportPngBtn) exportPngBtn.addEventListener('click', (e) => { e.stopPropagation(); exportChartsPNG(); exportMenu.style.display='none'; });
   if (exportPdfBtn) exportPdfBtn.addEventListener('click', (e) => { e.stopPropagation(); exportAnalyticsPDF(); exportMenu.style.display='none'; });
+
 
   // Footer: set dynamic year and small accessibility tweaks
   const footerCopyright = document.getElementById('footerCopyright');
@@ -3920,6 +3928,11 @@ function showTaskPopup(message) {
     popup.classList.remove("show");
     setTimeout(() => popup.remove(), 600);
   }, 3500);
+
+
+}
+
+
 }
 
 // ==========================================================================
@@ -3975,11 +3988,16 @@ if (addExamBtn) {
 
     saveData();
     renderExams();
+
     renderCalendar();
     announce(`Added exam: ${title}`);
 
     // Add notification for new exam tracked
     addNotification({ type: 'exam', title: `Exam tracked: ${title}`, body: `${subject} — ${new Date(exam.date).toLocaleString()}`, ref: `exam-${exam.id}` });
+
+
+    announce(`Added exam: ${title}`);
+
 
     // Clear form
     document.getElementById("examTitle").value = "";
@@ -4049,7 +4067,9 @@ function updateExamsCountdown() {
       // Trigger notification once if < 24h
       if (!notifiedExams.has(exam.id)) {
         sendNotification("Urgent Exam!", `${exam.title} is in less than 24 hours!`);
+
         addNotification({ type: 'exam', title: `Exam soon: ${exam.title}`, body: `${exam.subject} in <24 hours`, ref: `exam-urgent-${exam.id}` });
+
         notifiedExams.add(exam.id);
       }
     } else if (timeDiff < 3 * 24 * 60 * 60 * 1000) {
@@ -4614,4 +4634,9 @@ function renderVault() {
 
     vaultFilesGrid.appendChild(card);
   });
+
 }
+
+}
+
+
