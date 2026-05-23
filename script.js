@@ -2402,6 +2402,125 @@ function initCompletionTrendChart() {
   });
 }
 
+// ----- Analytics Export helpers -----
+function gatherAnalyticsData() {
+  const analytics = window.quests_analytics || {};
+  // Provide safe defaults
+  return {
+    studyMinutes: analytics.dailyStudyMinutes || [],
+    completedPerDay: analytics.completedTasksPerDay || [],
+    focusHistory: analytics.focusHistory || [],
+    currentStreak: analytics.currentStreak || 0,
+    longestStreak: analytics.longestStreak || 0,
+    generatedAt: new Date().toISOString()
+  };
+}
+
+function downloadBlob(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportAnalyticsCSV() {
+  const data = gatherAnalyticsData();
+  let csv = 'section,metric,day,value\n';
+  // Study minutes
+  data.studyMinutes.forEach((m, i) => { csv += `study,minutes,${i+1},${m}\n`; });
+  // Completed tasks
+  data.completedPerDay.forEach((c, i) => { csv += `completed,tasks,${i+1},${c}\n`; });
+  // Focus history
+  data.focusHistory.forEach((f, i) => { csv += `focus,session,${i+1},${f.duration || f.minutes || 0}\n`; });
+  csv += `streak,current, ,${data.currentStreak}\n`;
+  csv += `streak,longest, ,${data.longestStreak}\n`;
+  csv += `generated,at, ,${data.generatedAt}\n`;
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  downloadBlob('quests_analytics_export.csv', blob);
+}
+
+function exportChartsPNG() {
+  const canvasIds = ['studyHoursChart', 'categoryChart', 'completionTrendChart'];
+  canvasIds.forEach((id) => {
+    const c = document.getElementById(id);
+    if (c && c.toDataURL) {
+      const dataUrl = c.toDataURL('image/png');
+      // trigger download
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `${id}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  });
+}
+
+async function exportAnalyticsPDF() {
+  // Ensure jsPDF available
+  let jsPDFGlobal = window.jspdf && (window.jspdf.jsPDF || window.jspdf);
+  if (!jsPDFGlobal) {
+    // try to load UMD export
+    if (window.jspdf && window.jspdf.jsPDF) jsPDFGlobal = window.jspdf.jsPDF;
+  }
+  if (!jsPDFGlobal) {
+    console.warn('jsPDF not found; attempting dynamic load');
+    await new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = resolve;
+      document.head.appendChild(s);
+    });
+    jsPDFGlobal = window.jspdf && (window.jspdf.jsPDF || window.jspdf);
+  }
+  if (!jsPDFGlobal) {
+    alert('PDF export unavailable (jsPDF failed to load)');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const margin = 40;
+  let y = margin;
+  doc.setFontSize(16);
+  doc.text('Quests Analytics Export', margin, y);
+  y += 22;
+  doc.setFontSize(10);
+  const data = gatherAnalyticsData();
+  doc.text(`Generated: ${data.generatedAt}`, margin, y);
+  y += 18;
+  doc.text(`Current streak: ${data.currentStreak} days`, margin, y);
+  y += 18;
+  doc.text(`Longest streak: ${data.longestStreak} days`, margin, y);
+  y += 24;
+
+  // add charts as images if present
+  const canvasIds = ['studyHoursChart', 'categoryChart', 'completionTrendChart'];
+  for (const id of canvasIds) {
+    const c = document.getElementById(id);
+    if (c && c.toDataURL) {
+      const img = c.toDataURL('image/png');
+      const imgProps = doc.getImageProperties(img);
+      const pdfWidth = doc.internal.pageSize.getWidth() - margin * 2;
+      const scale = Math.min(1, pdfWidth / imgProps.width);
+      const imgHeight = imgProps.height * scale;
+      if (y + imgHeight > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.addImage(img, 'PNG', margin, y, pdfWidth, imgHeight);
+      y += imgHeight + 12;
+    }
+  }
+
+  doc.save('quests_analytics_export.pdf');
+}
+
 // Chart toggle click listeners for completion trend
 document.getElementById("btnWeeklyTrend")?.addEventListener("click", () => {
   const weekly = document.getElementById("btnWeeklyTrend");
@@ -3084,6 +3203,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const ctaAddSubject = document.getElementById('ctaAddSubject');
   if (ctaAddSubject) ctaAddSubject.addEventListener('click', () => { const s = document.getElementById('subjectInputForm'); if (s) { s.style.display='grid'; s.querySelector('input')?.focus(); } });
+
+  // Export menu handlers
+  const exportBtn = document.getElementById('exportBtn');
+  const exportMenu = document.getElementById('exportMenu');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
+  const exportPngBtn = document.getElementById('exportPngBtn');
+  const exportPdfBtn = document.getElementById('exportPdfBtn');
+
+  if (exportBtn && exportMenu) {
+    exportBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
+    });
+  }
+
+  document.addEventListener('click', () => { if (exportMenu) exportMenu.style.display = 'none'; });
+
+  if (exportCsvBtn) exportCsvBtn.addEventListener('click', (e) => { e.stopPropagation(); exportAnalyticsCSV(); exportMenu.style.display='none'; });
+  if (exportPngBtn) exportPngBtn.addEventListener('click', (e) => { e.stopPropagation(); exportChartsPNG(); exportMenu.style.display='none'; });
+  if (exportPdfBtn) exportPdfBtn.addEventListener('click', (e) => { e.stopPropagation(); exportAnalyticsPDF(); exportMenu.style.display='none'; });
 
   // Footer: set dynamic year and small accessibility tweaks
   const footerCopyright = document.getElementById('footerCopyright');

@@ -6817,6 +6817,8 @@ body.light .drag-handle:hover {
   text-align: center;
   font-weight: 800;
   color: var(--primary);
+.analytics-export-row .view-btn { padding:8px 12px; }
+.export-menu .view-btn { display:block; width:100%; margin-bottom:6px; }
   margin-bottom: 15px;
   font-size: 13px;
   text-transform: uppercase;

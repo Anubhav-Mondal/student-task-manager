@@ -19,6 +19,8 @@
   
   <!-- Chart.js for analytics visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -38,6 +40,18 @@
       <div class="logo-box">
         <div class="logo">
           <i class="ri-gamepad-fill"></i>
+        </div>
+
+        <!-- Export Controls -->
+        <div class="analytics-export-row" style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;position:relative;">
+          <div class="export-group">
+            <button class="view-btn" id="exportBtn"><i class="ri-download-2-line"></i> Export</button>
+            <div id="exportMenu" class="export-menu" style="display:none; position:absolute; right:0; background:var(--card); border:1px solid var(--border); padding:8px; border-radius:8px; box-shadow:var(--shadow); z-index:50;">
+              <button class="view-btn" id="exportCsvBtn">Export CSV</button>
+              <button class="view-btn" id="exportPngBtn">Export Charts (PNG)</button>
+              <button class="view-btn" id="exportPdfBtn">Export PDF</button>
+            </div>
+          </div>
         </div>
         <div>
           <h1>TaskQuest</h1>
