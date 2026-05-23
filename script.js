@@ -25,6 +25,54 @@ if (taskTemplate) {
   });
 }
 
+// Footer enhancements: newsletter subscribe, dynamic year, back-to-top
+document.addEventListener('DOMContentLoaded', () => {
+  // Dynamic year
+  try {
+    const yearEl = document.getElementById('footerCopyright');
+    if (yearEl) {
+      const yr = new Date().getFullYear();
+      yearEl.innerHTML = `&copy; ${yr} TaskQuest. All rights reserved.`;
+    }
+  } catch(e){}
+
+  // Newsletter subscribe
+  const subscribeBtn = document.getElementById('subscribeBtn');
+  const emailInput = document.getElementById('footerEmail');
+  const subscribeMsg = document.getElementById('subscribeMsg');
+  if (subscribeBtn && emailInput) {
+    subscribeBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        subscribeMsg.textContent = 'Please enter a valid email address.';
+        subscribeMsg.style.color = '#f97316';
+        return;
+      }
+      try {
+        const stored = JSON.parse(localStorage.getItem('newsletter_subscribers') || '[]');
+        if (!stored.includes(email)) stored.push(email);
+        localStorage.setItem('newsletter_subscribers', JSON.stringify(stored));
+        subscribeMsg.textContent = 'Thanks — you are subscribed!';
+        subscribeMsg.style.color = '#10b981';
+        emailInput.value = '';
+        setTimeout(() => subscribeMsg.textContent = '', 4000);
+      } catch (e) {
+        subscribeMsg.textContent = 'Subscription failed. Please try again.';
+        subscribeMsg.style.color = '#ef4444';
+      }
+    });
+  }
+
+  // Back to top behavior
+  const backBtn = document.getElementById('backToTopBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 220) backBtn.classList.add('show'); else backBtn.classList.remove('show');
+    });
+  }
+});
+
 // Sidebar metrics elements
 const totalTasks = document.getElementById("totalTasks");
 const completedTasks = document.getElementById("completedTasks");
