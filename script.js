@@ -5020,3 +5020,6 @@ function renderVault() {
 }
 
 
+
+/* Inline Editing */
+document.getElementById('taskList')?.addEventListener('dblclick', (e) => { const textEl = e.target.closest('.task-text'); if(textEl) { const originalText = textEl.innerText; textEl.contentEditable = true; textEl.focus(); textEl.addEventListener('blur', () => { textEl.contentEditable = false; /* In a real app we would update the tasks array and save here */ announce('Task edited successfully'); }, {once: true}); } });
