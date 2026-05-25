@@ -1,57 +1,2073 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Study Task Tracker</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskQuest • Gamified Productivity</title>
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https:;">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icon Libraries -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <!-- Chart.js for analytics visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="collaborative-styles.css">
 </head>
+
 <body>
-  <a class="skip-link" href="#main-content">Skip to main content</a>
 
-  <header class="site-header">
-    <h1>📚 Study Task Tracker</h1>
-    
-    <select id="themeSwitcher" class="theme-dropdown">
-      <option value="light">🌞 Light</option>
-      <option value="dark">🌙 Dark</option>
-      <option value="blue">🩵 Blue</option>
-      <option value="pastel">🎀 Pastel</option>
-    </select>
-  </header>
+  <!-- BACKGROUND -->
+  <div class="bg blur1"></div>
+  <div class="bg blur2"></div>
+  <div class="grid-overlay"></div>
 
-  <main id="main-content" class="container">
-    <form id="taskForm" onsubmit="event.preventDefault(); addTask();">
-      <label for="taskInput">Task description</label>
-      <input type="text" id="taskInput" placeholder="Enter task" aria-describedby="taskHelp">
-      <button type="submit">Add</button>
-      <p id="taskHelp" class="sr-only">Enter a task and press Add to track your study items.</p>
-    </form>
+  <main class="container">
 
-    <p id="errorMsg" class="error" role="alert"></p>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <ul id="taskList" aria-live="polite" aria-label="Task list"></ul>
-    <p id="taskStats"></p>
+      <div class="logo-box">
+        <div class="logo">
+          <i class="ri-gamepad-fill"></i>
+        </div>
 
-    <div id="celebration" class="celebration hidden">
-    <img src="task completed image.jpg" alt="Celebration" />
-    <p>All tasks completed! 🎉</p>
-  </div>
+        <!-- Export Controls -->
+        <div class="analytics-export-row" style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;position:relative;">
+          <div class="export-group">
+            <button class="view-btn" id="exportBtn"><i class="ri-download-2-line"></i> Export</button>
+            <div id="exportMenu" class="export-menu" style="display:none; position:absolute; right:0; background:var(--card); border:1px solid var(--border); padding:8px; border-radius:8px; box-shadow:var(--shadow); z-index:50;">
+              <button class="view-btn" id="exportCsvBtn">Export CSV</button>
+              <button class="view-btn" id="exportJsonBtn">Export JSON</button>
+              <button class="view-btn" id="exportPngBtn">Export Charts (PNG)</button>
+              <button class="view-btn" id="exportPdfBtn">Export PDF</button>
+            </div>
+          </div>
+          <!-- Sound toggle: subtle audio feedback control -->
+          <button id="soundToggleBtn" class="icon-btn sound-toggle" aria-pressed="true" title="Toggle sound">
+            <i class="ri-volume-up-line"></i>
+          </button>
+        </div>
+        <div>
+          <h1>TaskQuest</h1>
+          <p>Level Up Productivity</p>
+          <button class="view-btn" id="goToStudyTogetherBtn" style="margin-top: 10px; font-size: 13px;">
+            <i class="ri-team-line"></i> Open Study Together
+          </button>
+        </div>
+      </div>
+
+      <!-- PROFILE CARD -->
+      <div class="profile-card" id="profileCard" style="cursor: pointer;" title="Edit Profile">
+        <div class="avatar" id="profileAvatar">
+          <img id="profileAvatarImg" src="male_avatar.svg" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none;">
+          <i id="profileIconPlaceholder" class="ri-user-3-fill"></i>
+          <div class="avatar-edit-overlay">
+            <i class="ri-pencil-fill"></i>
+          </div>
+        </div>
+        <h2 id="profileNameDisplay">Student Hero</h2>
+        <p id="profileClassDisplay">Class 10 • Focus Warrior ⚔️</p>
+        <button class="view-btn" id="editProfileSidebarBtn" style="margin: 12px auto 0; font-size: 11px; padding: 5px 12px;"><i class="ri-pencil-line"></i> Edit Profile</button>
+        
+        <div class="xp-container">
+          <div class="xp-info">
+            <span id="xpLevel">Level 3</span>
+            <span id="xpText">120 / 300 XP</span>
+          </div>
+          <div class="xp-bar">
+            <div class="xp-fill" id="xpFill"></div>
+          </div>
+        </div>
+      </div>      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="ri-file-list-3-line"></i>
+          <h3 id="totalTasks">0</h3>
+          <p>Total Tasks</p>
+        </div>
+        <div class="stat-card">
+          <i class="ri-checkbox-circle-fill"></i>
+          <h3 id="completedTasks">0</h3>
+          <p>Completed</p>
+        </div>
+        <div class="stat-card">
+          <i class="ri-fire-fill"></i>
+          <h3 id="streakCount">0</h3>
+          <p>Streak</p>
+        </div>
+        <div class="stat-card">
+          <i class="ri-coin-fill"></i>
+          <h3 id="coins">0</h3>
+          <p>Coins</p>
+        </div>
+      </div>
+
+      <!-- ACHIEVEMENTS -->
+      <div class="achievement-card">
+        <div class="section-title">
+          <i class="ri-medal-fill"></i>
+          <span>Achievements</span>
+        </div>
+        <div class="badges" id="badgesGrid">
+          <div class="badge unlocked">🔥</div>
+          <div class="badge unlocked">⚡</div>
+          <div class="badge">👑</div>
+          <div class="badge">🚀</div>
+        </div>
+      </div>
+
+      <!-- POMODORO -->
+      <div class="pomodoro-card">
+        <div class="section-title">
+          <i class="ri-timer-2-fill"></i>
+          <span>Focus Mode</span>
+        </div>
+        <h2 id="modeText">Study Time</h2>
+        <div class="timer" id="timer">25:00</div>
+        <div class="timer-buttons">
+          <button onclick="startTimer()" title="Start timer"><i class="ri-play-fill"></i></button>
+          <button onclick="pauseTimer()" title="Pause timer"><i class="ri-pause-fill"></i></button>
+          <button onclick="resetTimer()" title="Reset timer"><i class="ri-restart-fill"></i></button>
+        </div>
+      </div>
+
+      <!-- WEEKLY STREAK TRACKER -->
+      <div class="streak-tracker-card glass">
+        <div class="card-title">
+          <i class="ri-fire-fill"></i>
+          <span>Weekly Streak</span>
+        </div>
+        <div class="streak-days" id="streakDaysGrid">
+          <!-- Dynamically populated by JS -->
+        </div>
+        <p class="streak-footer">Complete at least one task daily to protect your streak!</p>
+      </div>
+
+    </aside>
+    <!-- MAIN CONTENT REMOVED DUPLICATE HEADER -->
+
+    <!-- MAIN CONTENT -->
+    <section class="main-content">
+
+      <!-- TOP BAR -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="burger-btn" id="mobileSidebarToggle" aria-label="Toggle Sidebar Menu">
+            <i class="ri-menu-line"></i>
+          </button>
+          <div class="topbar-brand">
+            <div class="topbar-logo"><i class="ri-gamepad-fill"></i></div>
+            <div>
+              <h2>TaskQuest</h2>
+              <p class="mobile-hidden">Conquer your goals one task at a time ✨</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="theme-selector-panel">
+            <button class="theme-dot active" data-theme="cosmic" aria-label="Cosmic Theme" style="background: linear-gradient(135deg, #a855f7, #06b6d4);"></button>
+            <button class="theme-dot" data-theme="aurora" aria-label="Aurora Theme" style="background: linear-gradient(135deg, #10b981, #2dd4bf);"></button>
+            <button class="theme-dot" data-theme="cyberpunk" aria-label="Cyberpunk Theme" style="background: linear-gradient(135deg, #ec4899, #3b82f6);"></button>
+            <button class="theme-dot" data-theme="sunset" aria-label="Sunset Theme" style="background: linear-gradient(135deg, #f59e0b, #f43f5e);"></button>
+          </div>
+          <!-- Notification Bell -->
+          <div class="notification-wrap">
+            <button id="notificationBell" class="icon-btn notification-bell" aria-label="Notifications" title="Notifications" aria-expanded="false">
+              <i class="ri-notification-3-line"></i>
+              <span id="notificationBadge" class="notif-badge" aria-hidden="true" style="display:none">0</span>
+            </button>
+            <div id="notificationPanel" class="notification-panel" aria-hidden="true">
+              <div class="notification-panel-header">
+                <strong>Notifications</strong>
+                <div>
+                  <button id="markAllReadBtn" class="view-btn small">Mark all read</button>
+                  <button id="clearAllNotifBtn" class="view-btn small danger">Clear all</button>
+                </div>
+              </div>
+              <div id="notificationsList" class="notifications-list">
+                <!-- notifications populated here -->
+              </div>
+              <div id="noNotifications" class="notif-empty">You're all caught up 🎉</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB NAVIGATION -->
+      <div class="tabs-scroll-wrapper">
+        <button class="tabs-scroll-btn left" id="tabsScrollLeft" type="button" aria-label="Scroll tabs left">
+          <i class="ri-arrow-left-line"></i>
+        </button>
+
+        <div class="nav-tabs" role="tablist">
+          <button class="tab-btn active" id="tabBtnQuests" data-tab="quests" role="tab" aria-selected="true" aria-controls="quests-tab"><i class="ri-checkbox-multiple-line"></i> Quests & Workspace</button>
+          <button class="tab-btn" id="tabBtnSubjectTracker" data-tab="subject-tracker" role="tab" aria-selected="false" aria-controls="subject-tracker-tab"><i class="ri-book-open-line"></i> Subject Mastery</button>
+          <button class="tab-btn" id="tabBtnAnalytics" data-tab="analytics" role="tab" aria-selected="false" aria-controls="analytics-tab"><i class="ri-bar-chart-2-line"></i> Analytics Hub</button>
+          <button class="tab-btn" id="tabBtnStreak" data-tab="streak" role="tab" aria-selected="false" aria-controls="streak-tab"><i class="ri-fire-line"></i> Streak Tracker</button>
+          <button class="tab-btn" id="tabBtnAssignments" data-tab="assignments" role="tab" aria-selected="false" aria-controls="assignments-tab"><i class="ri-calendar-check-line"></i> Assignments</button>
+          <button class="tab-btn" id="tabBtnVault" data-tab="vault" role="tab" aria-selected="false" aria-controls="vault-tab"><i class="ri-folder-open-line"></i> Files Vault</button>
+          <button class="tab-btn" id="tabBtnBookmarks" data-tab="bookmarks" role="tab" aria-selected="false" aria-controls="bookmarks-tab"><i class="ri-bookmark-3-line"></i> Bookmarks</button>
+          <button class="tab-btn" id="tabBtnPerformance" data-tab="performance" role="tab" aria-selected="false" aria-controls="performance-tab"><i class="ri-medal-line"></i> Performance</button>
+          <button class="tab-btn" id="tabBtnTimetable" data-tab="timetable" role="tab" aria-selected="false" aria-controls="timetable-tab"><i class="ri-calendar-todo-line"></i> Timetable</button>
+          <button class="tab-btn" id="tabBtnCalendar" data-tab="calendar" role="tab" aria-selected="false" aria-controls="calendar-tab"><i class="ri-calendar-event-line"></i> Calendar</button>
+          <button class="tab-btn" id="tabBtnMotivation" data-tab="motivation" role="tab" aria-selected="false" aria-controls="motivation-tab"><i class="ri-flashlight-line"></i> Motivation</button>
+          <button class="tab-btn" id="tabBtnCollaborative" data-tab="collaborative" role="tab" aria-selected="false" aria-controls="collaborative-tab"><i class="ri-team-line"></i> Study Together</button>
+        </div>
+
+        <button class="tabs-scroll-btn right" id="tabsScrollRight" type="button" aria-label="Scroll tabs right">
+          <i class="ri-arrow-right-line"></i>
+        </button>
+      </div>
+
+      <!-- TAB 1: QUESTS & TIMER -->
+      <div id="quests-tab" class="tab-content active" role="tabpanel" aria-labelledby="tabBtnQuests">
+        <div class="workspace-layout">
+          <!-- Tasks Work area -->
+          <div class="workspace-main">
+            <!-- ADD TASK -->
+            <div class="task-box">
+              <div class="task-input-group" style="display:flex;gap:8px;align-items:center;">
+                <select id="taskTemplate" aria-label="Quick templates" title="Quick templates" style="border-radius:12px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:var(--text);">
+                  <option value="">Templates</option>
+                  <option value='{"text":"Read chapter summary","category":"Theory","priority":"Medium","tags":["reading","notes"]}'>Read chapter</option>
+                  <option value='{"text":"Practice problem set","category":"Practical","priority":"High","tags":["practice","problem-solving"]}'>Practice problems</option>
+                  <option value='{"text":"Finish assignment","category":"Assignment","priority":"High","tags":["deadline","submission"]}'>Finish assignment</option>
+                  <option value='{"text":"Revision session","category":"Revision","priority":"Low","tags":["review","exam-prep"]}'>Revision session</option>
+                </select>
+                <input
+                  type="text"
+                  id="taskInput"
+                  placeholder="Enter your next task..."
+                />
+              </div>
+              <select id="categorySelect" aria-label="Task category">
+                <option value="Theory">📘 Theory</option>
+                <option value="Practical">🧪 Practical</option>
+                <option value="Assignment">📝 Assignment</option>
+                <option value="Revision">📖 Revision</option>
+              </select>
+              <select id="prioritySelect" aria-label="Task priority">
+                <option value="High">🔴 High</option>
+                <option value="Medium" selected>🟡 Medium</option>
+                <option value="Low">🟢 Low</option>
+              </select>
+              <select id="recurrenceSelect" aria-label="Recurrence">
+                <option value="none">No Repeat</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <input
+                type="text"
+                id="taskTagsInput"
+                placeholder="Tags (comma separated)"
+                list="taskTagSuggestionsList"
+                aria-label="Task tags"
+              />
+              <datalist id="taskTagSuggestionsList"></datalist>
+              <input
+                type="text"
+                id="taskTagsInput"
+                placeholder="Tags (comma separated)"
+                list="taskTagSuggestionsList"
+                aria-label="Task tags"
+              />
+              <datalist id="taskTagSuggestionsList"></datalist>
+              <div class="deadline-input-wrapper" style="position: relative; display: inline-flex; align-items: center;">
+                <i class="ri-calendar-event-line" style="position: absolute; left: 10px; color: var(--text-muted); pointer-events: none;"></i>
+                <input
+                  type="datetime-local"
+                  id="deadlineInput"
+                  title="Set deadline for this task"
+                  style="padding-left: 32px;"
+                />
+              </div>
+              <button id="addTaskBtn">
+                <i class="ri-add-line"></i> Add Task
+              </button>
+            </div>
+
+            <!-- VIEW TOGGLES -->
+            <div class="view-toggles">
+              <button class="view-btn active" id="listViewBtn" aria-label="Show list view">
+                <i class="ri-list-check"></i> List View
+              </button>
+              <button class="view-btn" id="boardViewBtn" aria-label="Show Kanban board view">
+                <i class="ri-kanban-view"></i> Kanban Board
+
+              </button>
+            </div>
+
+            <!-- SEARCH BAR -->
+            <div class="search-box glass">
+              <i class="ri-search-line"></i>
+              <input type="text" id="searchInput" placeholder="Search quests by title...">
+            </div>
+
+            <!-- TAG FILTERS -->
+            <div class="tag-filter-bar glass">
+              <div class="tag-filter-header">
+                <i class="ri-price-tag-3-line"></i>
+                <span>Filter by tag</span>
+              </div>
+              <div class="tag-chip-row" id="tagFilterChips"></div>
+            </div>
+
+            <!-- FILTERS -->
+            <div class="filters">
+              <button class="filter-btn active" data-filter="All">All</button>
+              <button class="filter-btn" data-filter="Theory">📘 Theory</button>
+              <button class="filter-btn" data-filter="Practical">🧪 Practical</button>
+              <button class="filter-btn" data-filter="Assignment">📝 Assignment</button>
+              <button class="filter-btn" data-filter="Revision">📖 Revision</button>
+
+              <!-- Sorting buttons -->
+              <button class="filter-btn" id="sortByDeadline" data-sort="deadline" title="Sort by earliest deadline">
+                <i class="ri-time-line"></i> Due Soon
+              </button>
+              <button class="filter-btn" id="sortByPriority" data-sort="priority" title="Sort by priority (High to Low)">
+                <i class="ri-arrow-up-down-line"></i> Priority
+              </button>
+              <button class="filter-btn" id="sortByAlphabetical" data-sort="alphabetical" title="Sort alphabetically by title">
+                <i class="ri-sort-asc"></i> A-Z
+              </button>
+
+              <button class="filter-btn" id="openPriorityTableBtn" title="Open Priority Table">
+                <i class="ri-list-check-2"></i> Priority Table
+              </button>
+
+              <button class="filter-btn reset-btn" id="resetTasksBtn" title="Clear all tasks from the list">
+                <i class="ri-delete-bin-line"></i> Clear All
+              </button>
+            </div>
+
+            <!-- DEADLINE ALERTS -->
+            <div class="deadline-alerts" id="deadlineAlerts"></div>
+
+            <!-- TASKS -->
+            <div class="task-list-wrapper">
+              <div class="task-list" id="taskList">
+                <div class="empty-state enhanced-empty" id="tasksEmpty">
+                    <!-- Simple SVG illustration -->
+                    <svg width="120" height="90" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <defs>
+                        <linearGradient id="g1" x1="0" x2="1">
+                          <stop offset="0" stop-color="#8b5cf6" />
+                          <stop offset="1" stop-color="#06b6d4" />
+                        </linearGradient>
+                      </defs>
+                      <rect x="6" y="18" width="108" height="60" rx="8" fill="url(#g1)" opacity="0.12" />
+                      <rect x="14" y="26" width="92" height="14" rx="4" fill="#fff" opacity="0.06" />
+                      <rect x="14" y="46" width="64" height="10" rx="4" fill="#fff" opacity="0.06" />
+                      <rect x="14" y="60" width="44" height="8" rx="4" fill="#fff" opacity="0.06" />
+                      <circle cx="96" cy="50" r="12" fill="url(#g1)" />
+                      <path d="M90 46 L102 54" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <h3>No Tasks Yet</h3>
+                    <p class="muted">Your quest list is empty — time to create your first task and get rewarded!</p>
+                    <div class="empty-cta-row">
+                      <button class="view-btn primary" id="ctaCreateTask">Create Your First Task</button>
+                      <button class="view-btn" id="ctaBrowseTemplates">Use Template</button>
+                    </div>
+                  </div>
+              </div>
+
+              <div class="board-columns" id="boardColumns" style="display: none;">
+                <!-- Populate columns dynamically in JS -->
+              </div>
+            </div>
+
+            <!-- Syllabus Checklist Panel (below tasks, above daily quest) -->
+            <!-- Priority Table Modal -->
+            <div id="priorityModalOverlay" class="modal-overlay" style="display:none;">
+              <div id="priorityModal" class="priority-modal">
+                <div class="priority-modal-header">
+                  <h3>Priority Table</h3>
+                  <button id="closePriorityModal" class="icon-btn" aria-label="Close priority table"><i class="ri-close-line"></i></button>
+                </div>
+                <div class="priority-controls">
+                  <div>
+                    <label>Filter:</label>
+                    <button class="view-btn small" data-priority="All">All</button>
+                    <button class="view-btn small" data-priority="High">High</button>
+                    <button class="view-btn small" data-priority="Medium">Medium</button>
+                    <button class="view-btn small" data-priority="Low">Low</button>
+                  </div>
+                  <div>
+                    <label>Sort:</label>
+                    <button class="view-btn small" data-sort="deadline">Due Soon</button>
+                    <button class="view-btn small" data-sort="overdue">Overdue First</button>
+                  </div>
+                </div>
+                <div id="priorityTableContainer" class="priority-table-container">
+                  <!-- populated by JS -->
+                </div>
+              </div>
+            </div>
+            <aside class="syllabus-panel glass" id="syllabusPanel" style="display: none;">
+              <div class="syllabus-header">
+                <h3>Syllabus Checklist</h3>
+                <div class="syllabus-progress">
+                  <div class="syllabus-progress-fill" id="syllabusProgressFill" style="width:0%"></div>
+                </div>
+                <span id="syllabusProgressText">0/0</span>
+              </div>
+
+              <div class="syllabus-controls">
+                <input id="syllabusInput" placeholder="Add topic or chapter..." aria-label="Add syllabus item">
+                <button id="addSyllabusBtn" class="view-btn small">Add</button>
+                <button id="applySyllabusBtn" class="view-btn small">Import to Tasks</button>
+              </div>
+
+              <ul id="syllabusList" class="syllabus-list" aria-live="polite"></ul>
+
+              <div class="syllabus-actions">
+                <button id="completeAllSyllabus" class="view-btn small">Mark all complete</button>
+                <button id="clearSyllabusBtn" class="view-btn small danger">Clear</button>
+              </div>
+            </aside>
+
+            <!-- DAILY QUEST -->
+            <div class="daily-quest">
+              <div>
+                <h3>Daily Quest</h3>
+                <p>Complete 5 tasks today to earn bonus XP ⚡</p>
+              </div>
+              <div class="quest-progress">
+                <span id="questText">0 / 5</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer Sidebar -->
+          <div class="workspace-sidebar">
+            <div class="study-mode glass">
+              <h2 id="mode">Study Time</h2>
+              <div class="timer" id="timerDisplay">25:00</div>
+              <div class="buttons">
+                <button onclick="startTimer()" title="Start"><i class="ri-play-fill"></i></button>
+                <button onclick="pauseTimer()" title="Pause"><i class="ri-pause-fill"></i></button>
+                <button onclick="resetTimer()" title="Reset"><i class="ri-restart-fill"></i></button>
+              </div>
+            </div>
+
+            <!-- MOTIVATIONAL QUOTES -->
+            <div class="motivational-quote-card glass" id="quoteCard1">
+              <div class="quote-icon"><i class="ri-double-quotes-l"></i></div>
+              <p class="quote-text" id="quoteText1">"The secret of getting ahead is getting started."</p>
+              <span class="quote-author" id="quoteAuthor1">— Mark Twain</span>
+              <button class="quote-refresh-btn" id="quoteRefresh1" aria-label="Get new quote" title="New quote">
+                <i class="ri-refresh-line"></i>
+              </button>
+            </div>
+
+            <div class="motivational-quote-card glass quote-card-alt" id="quoteCard2">
+              <div class="quote-icon"><i class="ri-lightbulb-flash-line"></i></div>
+              <p class="quote-text" id="quoteText2">"Small progress is still progress. Keep going."</p>
+              <span class="quote-author" id="quoteAuthor2">— Anonymous</span>
+              <button class="quote-refresh-btn" id="quoteRefresh2" aria-label="Get new quote" title="New quote">
+                <i class="ri-refresh-line"></i>
+              </button>
+            </div>
+
+            <!-- BREAK REMINDER CARD -->
+            <div class="break-reminder-card glass" id="breakReminderCard">
+              <div class="break-header">
+                <div class="break-title-wrap">
+                  <i class="ri-rest-time-line"></i>
+                  <span>Break Reminder</span>
+                </div>
+                <span class="break-status-badge" id="breakStatusBadge">OFF</span>
+              </div>
+
+              <div class="break-interval-row">
+                <label for="breakIntervalSelect">Remind every</label>
+                <div class="break-select-wrap">
+                  <select id="breakIntervalSelect" aria-label="Break interval">
+                    <option value="15">15 min</option>
+                    <option value="20">20 min</option>
+                    <option value="25" selected>25 min</option>
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">60 min</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="break-countdown-wrap" id="breakCountdownWrap">
+                <div class="break-ring-container">
+                  <svg class="break-ring" viewBox="0 0 60 60" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="breakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#10b981"/>
+                        <stop offset="100%" stop-color="#06b6d4"/>
+                      </linearGradient>
+                    </defs>
+                    <circle class="break-ring-bg" cx="30" cy="30" r="26"/>
+                    <circle class="break-ring-fill" id="breakRingFill" cx="30" cy="30" r="26"/>
+                  </svg>
+                  <span class="break-time-display" id="breakTimeDisplay">25:00</span>
+                </div>
+              </div>
+
+              <div class="break-controls">
+                <button class="break-ctrl-btn break-start-btn" id="breakStartBtn" aria-label="Start break reminder">
+                  <i class="ri-play-fill"></i>
+                </button>
+                <button class="break-ctrl-btn break-pause-btn" id="breakPauseBtn" aria-label="Pause break reminder" disabled>
+                  <i class="ri-pause-fill"></i>
+                </button>
+                <button class="break-ctrl-btn break-reset-btn" id="breakResetBtn" aria-label="Reset break reminder">
+                  <i class="ri-restart-fill"></i>
+                </button>
+              </div>
+
+              <div class="break-sound-row">
+                <i class="ri-volume-up-line"></i>
+                <span>Sound alert</span>
+                <label class="break-toggle-switch" for="breakSoundToggle">
+                  <input type="checkbox" id="breakSoundToggle" checked />
+                  <span class="break-toggle-track"></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        
+        <!-- ====================================================== -->
+        <!-- DAILY GOALS SECTION -->
+        <!-- ====================================================== -->
+        <div class="daily-goals-card glass" id="dailyGoalsCard">
+          <div class="daily-goals-header">
+            <div class="daily-goals-title-wrap">
+              <i class="ri-sun-line"></i>
+              <div>
+                <h3>Daily Goals</h3>
+                <p class="daily-goals-date" id="dailyGoalsDate">Today</p>
+              </div>
+            </div>
+            <div class="daily-goals-header-right">
+              <div class="daily-goals-streak" id="dailyGoalStreak" title="Daily goals streak">
+                <i class="ri-fire-fill"></i>
+                <span id="dailyGoalStreakNum">0</span>
+              </div>
+              <button class="daily-goals-reset-btn" id="dailyGoalsResetBtn" title="Reset all goals for today">
+                <i class="ri-refresh-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress Ring & Stats -->
+          <div class="daily-goals-progress-wrap">
+            <div class="daily-goals-ring-container">
+              <svg class="daily-goals-ring" viewBox="0 0 80 80">
+                <defs>
+                  <linearGradient id="dgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop id="dgGradientStart" offset="0%" stop-color="#f59e0b" />
+                    <stop id="dgGradientEnd" offset="100%" stop-color="#f97316" />
+                  </linearGradient>
+                </defs>
+                <circle class="dg-ring-bg" cx="40" cy="40" r="34"/>
+                <circle class="dg-ring-fill" id="dgRingFill" cx="40" cy="40" r="34"/>
+              </svg>
+              <div class="daily-goals-ring-text">
+                <span id="dgPercent">0%</span>
+                <span class="dg-ring-label">done</span>
+              </div>
+            </div>
+            <div class="daily-goals-stats">
+              <div class="dg-stat">
+                <span class="dg-stat-num" id="dgTotalCount">0</span>
+                <span class="dg-stat-label">Total</span>
+              </div>
+              <div class="dg-stat">
+                <span class="dg-stat-num" id="dgDoneCount">0</span>
+                <span class="dg-stat-label">Done</span>
+              </div>
+              <div class="dg-stat">
+                <span class="dg-stat-num" id="dgLeftCount">0</span>
+                <span class="dg-stat-label">Left</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Motivational message -->
+          <div class="dg-motivation" id="dgMotivation">
+            <i class="ri-seedling-line"></i>
+            <span>Set your first goal for today!</span>
+          </div>
+
+          <!-- Add Goal Input -->
+          <div class="daily-goals-add-wrap">
+            <div class="daily-goals-priority-wrap">
+              <select id="dgPrioritySelect" class="dg-priority-select" aria-label="Goal priority">
+                <option value="high">🔴 High</option>
+                <option value="medium" selected>🟡 Medium</option>
+                <option value="low">🟢 Low</option>
+              </select>
+            </div>
+            <input type="text" id="dgGoalInput" class="daily-goals-input" placeholder="Add a daily goal..." maxlength="80">
+            <button class="daily-goals-add-btn" id="dgAddBtn" aria-label="Add daily goal">
+              <i class="ri-add-line"></i>
+            </button>
+          </div>
+
+          <!-- Goals List -->
+          <ul class="daily-goals-list" id="dailyGoalsList">
+            <!-- Populated by JS -->
+          </ul>
+
+        </div>
+
+        <!-- QUICK BRAIN DUMP SCRATCHPAD -->
+        <div class="scratchpad-card glass">
+          <div class="scratchpad-header">
+            <div class="scratchpad-title">
+              <i class="ri-sticky-note-line"></i>
+              <span>Quick Brain Dump</span>
+            </div>
+            <span class="save-status" id="scratchpadStatus">Autosaved to LocalStorage</span>
+          </div>
+          <textarea id="scratchpadInput" placeholder="Jot down quick thoughts, links, ideas, or temporary tasks here..." aria-label="Scratchpad for quick thoughts"></textarea>
+        </div>
+      </div>
+
+      <!-- TAB: SUBJECT MASTERY TRACKER -->
+      <div id="subject-tracker-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnSubjectTracker">
+        <div class="vault-header">
+          <div class="vault-title-area">
+            <h2><i class="ri-book-open-line"></i> Subject Mastery Tracker</h2>
+            <p>Organize syllabus topics and track your learning progress per subject.</p>
+          </div>
+          <button class="add-project-btn" id="addSubjectBtn">
+            <i class="ri-add-line"></i> Add New Subject
+          </button>
+        </div>
+
+        <div id="subjectInputForm" class="task-box glass" style="display: none; margin-bottom: 25px; grid-template-columns: 1fr 120px 120px auto auto;">
+          <input type="text" id="newSubjectTitleInput" placeholder="Enter Subject Name (e.g., Mathematics)...">
+          <input type="number" id="newSubjectCompletedInput" placeholder="Completed" min="0">
+          <input type="number" id="newSubjectTotalInput" placeholder="Total" min="1">
+          <button id="saveSubjectBtn" class="view-btn active">Add</button>
+          <button id="cancelSubjectBtn" class="view-btn">Cancel</button>
+        </div>
+
+        <div class="subjects-grid" id="subjectsGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
+      <!-- TAB 3: ASSIGNMENT TRACKER -->
+      <div id="assignments-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnAssignments">
+
+        <!-- EXAM COUNTDOWN WIDGET -->
+        <div class="exam-countdown-widget glass" id="examCountdownWidget">
+          <div class="asgn-form-header">
+            <div class="asgn-form-title"><i class="ri-timer-flash-line"></i> Exam Countdown</div>
+            <button class="asgn-form-toggle-btn" id="examFormToggle" aria-label="Toggle Exam Form"><i class="ri-add-line"></i></button>
+          </div>
+          
+          <!-- Add Exam Form (Hidden by default) -->
+          <div class="exam-form-body collapsed" id="examFormBody">
+            <div class="asgn-form-grid">
+              <div class="asgn-field">
+                <label for="examTitle">Exam Title *</label>
+                <input type="text" id="examTitle" placeholder="e.g. Final Mathematics Exam" />
+              </div>
+              <div class="asgn-field">
+                <label for="examSubject">Subject *</label>
+                <input type="text" id="examSubject" placeholder="e.g. Mathematics" list="subjectSuggestions"/>
+              </div>
+              <div class="asgn-field">
+                <label for="examDate">Exam Date & Time *</label>
+                <input type="datetime-local" id="examDate" />
+              </div>
+              <div class="asgn-field asgn-field-full">
+                <label for="examNotes">Notes (Optional)</label>
+                <input type="text" id="examNotes" placeholder="e.g. Bring calculator, chapters 1-5" />
+              </div>
+            </div>
+            <button class="asgn-add-btn" id="addExamBtn"><i class="ri-add-line"></i> Track Exam</button>
+          </div>
+
+          <!-- Exams Grid -->
+          <div class="exams-grid" id="examsGrid">
+            <!-- Dynamically populated by JS -->
+            <div class="exam-empty-state" id="examEmptyState">
+              <i class="ri-calendar-event-line"></i>
+              <p>No upcoming exams. You're all clear!</p>
+            </div>
+          </div>
+        </div>
+
+            <!-- Weekly Performance Summary -->
+        <div class="asgn-weekly-summary glass" id="weeklySummaryCard">
+          <div class="asgn-form-header">
+            <div class="asgn-form-title"><i class="ri-dashboard-line"></i> Weekly Performance Summary</div>
+            <button class="asgn-form-toggle-btn" id="weeklySummaryToggle" aria-label="Collapse summary"><i class="ri-chevron-up-line"></i></button>
+          </div>
+          <div class="weekly-summary-body" id="weeklySummaryBody">
+            <div class="weekly-summary-grid">
+              
+              <!-- Left Column: Score & Stats -->
+              <div class="ws-left-col">
+                <div class="ws-score-card">
+                  <div class="ws-score-ring">
+                    <svg viewBox="0 0 36 36" class="circular-chart primary">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="circle" id="wsScoreCircle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <text x="18" y="20.35" class="percentage" id="wsProductivityScore">0</text>
+                    </svg>
+                    <div class="ws-score-label">Productivity Score</div>
+                  </div>
+                </div>
+
+                <div class="ws-stats-grid">
+                  <div class="ws-stat-item">
+                    <i class="ri-checkbox-circle-fill" style="color: var(--success)"></i>
+                    <div><h4 id="wsQuestsCompleted">0</h4><p>Quests</p></div>
+                  </div>
+                  <div class="ws-stat-item">
+                    <i class="ri-file-list-3-fill" style="color: var(--primary)"></i>
+                    <div><h4 id="wsAsgnCompleted">0</h4><p>Assignments</p></div>
+                  </div>
+                  <div class="ws-stat-item">
+                    <i class="ri-time-fill" style="color: var(--secondary)"></i>
+                    <div><h4 id="wsStudyHours">0h</h4><p>Study Hours</p></div>
+                  </div>
+                  <div class="ws-stat-item">
+                    <i class="ri-fire-fill" style="color: #f59e0b"></i>
+                    <div><h4 id="wsStreak">0</h4><p>Day Streak</p></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Charts & Analysis -->
+              <div class="ws-right-col">
+                <div class="ws-chart-container">
+                  <canvas id="weeklyProgressChart"></canvas>
+                </div>
+                <div class="ws-subject-analysis" id="wsSubjectAnalysis">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <!-- LAB RECORDS: minimal lab submission tracker -->
+        <div class="lab-records-card glass" id="labRecordsCard" style="margin-top:20px;">
+          <div class="vault-header">
+            <div class="vault-title-area">
+              <h2><i class="ri-flask-line"></i> Lab Records</h2>
+              <p>Track experiments, submission status, and deadlines.</p>
+            </div>
+          </div>
+
+          <div class="task-box" style="grid-template-columns: 1fr 160px 220px 120px; margin-top:12px;">
+            <input type="text" id="labTitleInput" placeholder="Experiment title (e.g. Titration Lab)" />
+            <input type="text" id="labSubjectInput" placeholder="Subject (e.g. Chemistry)" list="subjectSuggestions" />
+            <input type="datetime-local" id="labDeadlineInput" />
+            <button id="labAddBtn" class="view-btn">Add</button>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0; gap:12px;">
+            <div>
+              <label for="labSubjectFilter">Filter by subject:</label>
+              <select id="labSubjectFilter" style="margin-left:8px;">
+                <option value="All">All</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="font-size:13px;color:var(--text-light);">Progress:</div>
+              <div style="width:200px;">
+                <div class="lab-progress-bar" style="background:rgba(255,255,255,0.06);border-radius:8px;overflow:hidden;height:12px;">
+                  <div id="labProgressFill" style="width:0%;height:100%;background:linear-gradient(90deg,#10b981,#06b6d4);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="labRecordsList" style="display:flex;flex-direction:column;gap:10px;margin-top:8px;"></div>
+        </div>
+
+
+
+        <!-- Summary Stats -->
+        <div class="asgn-stats-row">
+          <div class="asgn-stat-card glass">
+            <div class="asgn-stat-icon" style="background: rgba(99,102,241,0.15); color:#6366f1;"><i class="ri-file-list-3-line"></i></div>
+            <div><p class="asgn-stat-num" id="asgnTotal">0</p><p class="asgn-stat-lbl">Total</p></div>
+          </div>
+          <div class="asgn-stat-card glass">
+            <div class="asgn-stat-icon" style="background: rgba(16,185,129,0.15); color:#10b981;"><i class="ri-checkbox-circle-line"></i></div>
+            <div><p class="asgn-stat-num" id="asgnDone">0</p><p class="asgn-stat-lbl">Completed</p></div>
+          </div>
+          <div class="asgn-stat-card glass">
+            <div class="asgn-stat-icon" style="background: rgba(245,158,11,0.15); color:#f59e0b;"><i class="ri-time-line"></i></div>
+            <div><p class="asgn-stat-num" id="asgnUpcoming">0</p><p class="asgn-stat-lbl">Due Soon</p></div>
+          </div>
+          <div class="asgn-stat-card glass">
+            <div class="asgn-stat-icon" style="background: rgba(239,68,68,0.15); color:#ef4444;"><i class="ri-alarm-warning-line"></i></div>
+            <div><p class="asgn-stat-num" id="asgnOverdue">0</p><p class="asgn-stat-lbl">Overdue</p></div>
+          </div>
+        </div>
+
+        <!-- Add Assignment Form -->
+        <div class="asgn-form-card glass" id="asgnFormCard">
+          <div class="asgn-form-header">
+            <div class="asgn-form-title"><i class="ri-add-circle-line"></i> New Assignment</div>
+            <button class="asgn-form-toggle-btn" id="asgnFormToggle" aria-label="Collapse form"><i class="ri-chevron-up-line"></i></button>
+          </div>
+          <div class="asgn-form-body" id="asgnFormBody">
+            <div class="asgn-form-grid">
+              <div class="asgn-field">
+                <label for="asgnTitle">Assignment Title *</label>
+                <input type="text" id="asgnTitle" placeholder="e.g. Math Chapter 5 Homework" />
+              </div>
+              <div class="asgn-field">
+                <label for="asgnSubject">Subject *</label>
+                <input type="text" id="asgnSubject" placeholder="e.g. Mathematics" list="subjectSuggestions"/>
+                <datalist id="subjectSuggestions">
+                  <option value="Mathematics"/>
+                  <option value="Physics"/>
+                  <option value="Chemistry"/>
+                  <option value="Biology"/>
+                  <option value="English"/>
+                  <option value="History"/>
+                  <option value="Geography"/>
+                  <option value="Computer Science"/>
+                  <option value="Economics"/>
+                </datalist>
+              </div>
+              <div class="asgn-field">
+                <label for="asgnDue">Due Date &amp; Time *</label>
+                <input type="datetime-local" id="asgnDue" />
+              </div>
+              <div class="asgn-field">
+                <label for="asgnPriority">Priority</label>
+                <select id="asgnPriority">
+                  <option value="High">🔴 High</option>
+                  <option value="Medium" selected>🟡 Medium</option>
+                  <option value="Low">🟢 Low</option>
+                </select>
+              </div>
+              <div class="asgn-field asgn-field-full">
+                <label for="asgnNotes">Notes</label>
+                <input type="text" id="asgnNotes" placeholder="Optional details, references, or instructions…" />
+              </div>
+            </div>
+            <button class="asgn-add-btn" id="asgnAddBtn"><i class="ri-add-line"></i> Add Assignment</button>
+          </div>
+        </div>
+
+        <!-- Filter & Sort Controls -->
+        <div class="asgn-controls-bar">
+          <div class="asgn-filter-group" role="group" aria-label="Filter assignments">
+            <button class="asgn-filter-btn active" data-asgn-filter="all">All</button>
+            <button class="asgn-filter-btn" data-asgn-filter="pending">Pending</button>
+            <button class="asgn-filter-btn" data-asgn-filter="upcoming">Due Soon</button>
+            <button class="asgn-filter-btn" data-asgn-filter="overdue">Overdue</button>
+            <button class="asgn-filter-btn" data-asgn-filter="done">Done</button>
+          </div>
+          <div class="asgn-sort-wrap">
+            <i class="ri-sort-asc"></i>
+            <select id="asgnSort" aria-label="Sort assignments">
+              <option value="deadline">By Deadline</option>
+              <option value="priority">By Priority</option>
+              <option value="subject">By Subject</option>
+              <option value="added">Recently Added</option>
+            </select>
+          </div>
+          <div class="asgn-search-wrap">
+            <i class="ri-search-line"></i>
+            <input type="text" id="asgnSearch" placeholder="Search subject or title…" />
+          </div>
+        </div>
+
+        <!-- Assignment List -->
+        <div class="asgn-list" id="asgnList" aria-live="polite">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Timeline / Calendar View -->
+        <div class="asgn-timeline-card glass" id="asgnTimelineCard">
+          <div class="asgn-timeline-header">
+            <div class="asgn-tl-title"><i class="ri-calendar-line"></i> Upcoming Timeline</div>
+            <span class="asgn-tl-subtitle" id="asgnTimelineRange"></span>
+          </div>
+          <div class="asgn-timeline-grid" id="asgnTimelineGrid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 3.1: STREAK TRACKER -->
+      <div id="streak-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnStreak">
+        <div class="vault-header">
+          <div class="vault-title-area">
+            <h2><i class="ri-fire-line"></i> Study Streak Tracker</h2>
+            <p>Keep your momentum with daily streak monitoring, weekly progress, and achievement rewards.</p>
+          </div>
+          <button class="add-project-btn" id="refreshStreakBtn" title="Refresh streak data">
+            <i class="ri-refresh-line"></i> Refresh Tracker
+          </button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card glass">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;"><i class="ri-fire-fill"></i></div>
+            <h3 id="streakCurrentValue">0 days</h3>
+            <p>Current streak</p>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;"><i class="ri-time-line"></i></div>
+            <h3 id="streakLongestValue">0 days</h3>
+            <p>Longest streak</p>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;"><i class="ri-timer-flash-line"></i></div>
+            <h3 id="streakTodayMinutes">0 min</h3>
+            <p>Today studied</p>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;"><i class="ri-checkbox-circle-fill"></i></div>
+            <h3 id="streakGoalProgress">0%</h3>
+            <p>Goal completion</p>
+          </div>
+        </div>
+
+        <div class="daily-goals-card glass" id="streakProgressCard">
+          <div class="daily-goals-header">
+            <div class="daily-goals-title-wrap">
+              <i class="ri-pie-chart-line"></i>
+              <div>
+                <h3>Daily Progress Monitor</h3>
+                <p>Track your daily study minutes, task progress and motivation score.</p>
+              </div>
+            </div>
+            <div class="daily-goals-header-right">
+              <div class="daily-goals-streak" id="streakGoalCount" title="Daily progress count">
+                <i class="ri-checkbox-circle-line"></i>
+                <span>0 / 5</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="daily-goals-progress-wrap">
+            <div class="daily-goals-ring-container">
+              <svg class="daily-goals-ring" viewBox="0 0 80 80">
+                <defs>
+                  <linearGradient id="streakGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop id="streakGradientStart" offset="0%" stop-color="#60a5fa" />
+                    <stop id="streakGradientEnd" offset="100%" stop-color="#3b82f6" />
+                  </linearGradient>
+                </defs>
+                <circle class="dg-ring-bg" cx="40" cy="40" r="34" />
+                <circle class="dg-ring-fill" id="streakGoalFill" cx="40" cy="40" r="34" />
+              </svg>
+              <div class="daily-goals-ring-text">
+                <span id="streakGoalPercent">0%</span>
+                <span class="dg-ring-label">today</span>
+              </div>
+            </div>
+            <div class="daily-goals-stats">
+              <div class="dg-stat">
+                <span class="dg-stat-num" id="streakTasksCompleted">0</span>
+                <span class="dg-stat-label">Tasks done</span>
+              </div>
+              <div class="dg-stat">
+                <span class="dg-stat-num" id="streakGoalLeft">0</span>
+                <span class="dg-stat-label">Remaining</span>
+              </div>
+              <div class="dg-stat">
+                <span class="dg-stat-num" id="streakXpReward">+0 XP</span>
+                <span class="dg-stat-label">Reward</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="daily-goals-add-wrap" style="gap: 12px;">
+            <button class="daily-goals-add-btn" id="logStudyBtn" aria-label="Log study minutes">
+              <i class="ri-add-line"></i> Log 25 min study
+            </button>
+            <button class="daily-goals-add-btn" id="completeGoalBtn" aria-label="Mark today's goal complete">
+              <i class="ri-checkbox-circle-line"></i> Complete today's goal
+            </button>
+          </div>
+        </div>
+
+        <div class="achievement-card glass" id="streakAchievementCard">
+          <div class="section-title">
+            <i class="ri-award-line"></i>
+            <span>Achievement spotlight</span>
+          </div>
+          <div class="badges" id="streakBadgeGrid">
+            <div class="badge unlocked">🔥 Streak Builder</div>
+            <div class="badge">⚡ Focus Session</div>
+            <div class="badge">🎯 Goal Keeper</div>
+          </div>
+        </div>
+
+        <div class="glass" style="padding: 24px; border-radius: 30px;">
+          <div class="section-title" style="margin-bottom: 20px;">
+            <i class="ri-calendar-todo-line"></i>
+            <span>Weekly Study Activity</span>
+          </div>
+          <div class="streak-days" id="streakDaysGridMain">
+            <!-- Weekly streak cells populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: FILES VAULT -->
+      <div id="vault-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnVault">
+        
+        <div class="vault-header">
+          <div class="vault-title-area">
+            <h2><i class="ri-folder-lock-line"></i> Secure File Vault</h2>
+            <p>Upload and manage study materials, notes, and resources.</p>
+          </div>
+          <div class="vault-storage-info">
+            <div class="storage-bar"><div class="storage-fill" id="storageFill"></div></div>
+            <p id="storageText">0 KB / 5 MB LocalStorage used</p>
+          </div>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="vault-drop-zone glass" id="vaultDropZone">
+          <input type="file" id="vaultFileInput" multiple accept=".pdf,image/*,.txt,.doc,.docx" class="hidden-file-input">
+          <div class="drop-zone-content">
+            <i class="ri-upload-cloud-2-line drop-icon"></i>
+            <h3>Drag & Drop Files Here</h3>
+            <p>or <button class="browse-btn" id="vaultBrowseBtn">browse from device</button></p>
+            <span class="size-limit-note">Max size: 500KB per file (due to browser storage limits)</span>
+          </div>
+        </div>
+
+        <!-- Filter/Sort bar for files -->
+        <div class="asgn-controls-bar" style="margin-top: 20px;">
+          <div class="asgn-search-wrap" style="flex: 1; max-width: none;">
+            <i class="ri-search-line"></i>
+            <input type="text" id="vaultSearch" placeholder="Search files by name..." />
+          </div>
+          <div style="margin-left:10px;">
+            <button class="view-btn" id="clearVaultBtn" title="Clear all files from vault" style="background:#ef4444;color:white;">
+              <i class="ri-delete-bin-line"></i> Clear Vault
+            </button>
+          </div>
+        </div>
+
+        <!-- Files Grid -->
+        <div class="vault-files-grid" id="vaultFilesGrid">
+          <!-- Dynamically populated -->
+          <div class="vault-empty-state enhanced-empty" id="vaultEmptyState">
+            <svg width="120" height="90" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="g2" x1="0" x2="1">
+                  <stop offset="0" stop-color="#10b981" />
+                  <stop offset="1" stop-color="#06b6d4" />
+                </linearGradient>
+              </defs>
+              <rect x="10" y="18" width="100" height="54" rx="8" fill="url(#g2)" opacity="0.12" />
+              <path d="M30 36h60v4H30z" fill="#fff" opacity="0.06" />
+              <path d="M30 50h40v6H30z" fill="#fff" opacity="0.06" />
+              <circle cx="92" cy="60" r="10" fill="url(#g2)" />
+            </svg>
+            <h3>Your Vault is Empty</h3>
+            <p class="muted">Store important PDFs, notes, and images here for quick access.</p>
+            <div class="empty-cta-row">
+              <button class="view-btn primary" id="ctaUploadFiles">Upload Files</button>
+              <button class="view-btn" id="vaultBrowseBtnSmall">Browse Device</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="analytics-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnAnalytics">
+
+        <!-- Stats summary row -->
+        <div class="analytics-stats-grid">
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper green">
+              <i class="ri-checkbox-circle-fill"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsCompletedQuests">0</h3>
+                <span class="trend-pill positive"><i class="ri-arrow-up-line"></i> +8%</span>
+              </div>
+              <p>Total Tasks Completed</p>
+            </div>
+          </div>
+
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper orange">
+              <i class="ri-time-line"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsPendingTasks">0</h3>
+                <span class="trend-pill negative"><i class="ri-arrow-down-line"></i> -5%</span>
+              </div>
+              <p>Pending Tasks</p>
+            </div>
+          </div>
+          
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper orange">
+              <i class="ri-fire-fill"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsStreak">0 days</h3>
+                <span class="trend-pill neutral">Steady</span>
+              </div>
+              <p>Active Streak</p>
+            </div>
+          </div>
+          
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper purple">
+              <i class="ri-percent-line"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsCompletionRate">0%</h3>
+                <span class="trend-pill positive"><i class="ri-arrow-up-line"></i> +3%</span>
+              </div>
+              <p>Completion Rate</p>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="analytics-stats-grid">
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper blue">
+              <i class="ri-flashlight-line"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsDailyScore">0</h3>
+                <span class="trend-pill positive"><i class="ri-arrow-up-line"></i> Live</span>
+              </div>
+              <p>Today's Productivity Score</p>
+            </div>
+          </div>
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper green">
+              <i class="ri-award-line"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsDailyHighScore">0</h3>
+                <span class="trend-pill positive"><i class="ri-arrow-up-line"></i> Best</span>
+              </div>
+              <p>Daily High Score</p>
+            </div>
+          </div>
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper yellow">
+              <i class="ri-calendar-check-line"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsBestProductiveDay">—</h3>
+              </div>
+              <p>Best Productivity Day</p>
+            </div>
+          </div>
+          <div class="analytics-stat-card glass">
+            <div class="stat-icon-wrapper orange">
+              <i class="ri-timer-flash-line"></i>
+            </div>
+            <div class="stat-info" style="width: 100%;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <h3 id="analyticsBestStudyRecord">0 min</h3>
+              </div>
+              <p>Best Study Record</p>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="analytics-weekly-summary-grid">
+          <div class="weekly-stat-card glass">
+            <div class="stat-icon-wrapper blue">
+              <i class="ri-calendar-check-line"></i>
+            </div>
+            <div>
+              <h4 id="weeklyCompletedTasks">0</h4>
+              <p>Completed this week</p>
+            </div>
+          </div>
+          <div class="weekly-stat-card glass">
+            <div class="stat-icon-wrapper orange">
+              <i class="ri-time-line"></i>
+            </div>
+            <div>
+              <h4 id="weeklyPendingTasks">0</h4>
+              <p>Pending this week</p>
+            </div>
+          </div>
+          <div class="weekly-stat-card glass">
+            <div class="stat-icon-wrapper green">
+              <i class="ri-repeat-line"></i>
+            </div>
+            <div>
+              <h4 id="weeklyAvgTasks">0</h4>
+              <p>Avg tasks / day</p>
+            </div>
+          </div>
+          <div class="weekly-stat-card glass">
+            <div class="stat-icon-wrapper purple">
+              <i class="ri-pie-chart-line"></i>
+            </div>
+            <div>
+              <h4 id="weeklyCompletionRate">0%</h4>
+              <p>Weekly completion</p>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Charts grid -->
+        <div class="analytics-charts-grid">
+          <!-- Chart 1: Study hours -->
+          <div class="chart-card glass">
+            <div class="chart-header">
+              <div class="header-left">
+                <i class="ri-bar-chart-fill"></i>
+                <h3>Productivity Chart</h3>
+              </div>
+              <div class="chart-toggle-group">
+                <button class="toggle-btn active" id="btnWeeklyStudy">Weekly</button>
+                <button class="toggle-btn" id="btnMonthlyStudy">Monthly</button>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="studyHoursChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Category Pie/Doughnut -->
+          <div class="chart-card glass">
+            <div class="chart-header">
+              <div class="header-left">
+                <i class="ri-pie-chart-fill"></i>
+                <h3>Subject Category Mastery</h3>
+              </div>
+            </div>
+            <div class="chart-wrapper pie-chart-wrapper">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Quest Completion Trend -->
+          <div class="chart-card glass full-width">
+            <div class="chart-header">
+              <div class="header-left">
+                <i class="ri-line-chart-fill"></i>
+                <h3>Quest Completion Trend</h3>
+              </div>
+              <div class="chart-toggle-group">
+                <button class="toggle-btn active" id="btnWeeklyTrend">Weekly</button>
+                <button class="toggle-btn" id="btnMonthlyTrend">Monthly</button>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="completionTrendChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+
+
+      <!-- TAB 2: ANALYTICS HUB -->
+
+
+
+      <!-- TAB 2: ANALYTICS HUB -->
+
+        <!-- Consistency Heatmap & Mastery Progress List -->
+
+
+        <div class="analytics-heatmap-layout">
+          <!-- Github style Heatmap -->
+          <div class="chart-card glass heatmap-card">
+            <div class="chart-header">
+              <div class="header-left">
+                <i class="ri-calendar-todo-fill"></i>
+                <h3>Consistency Heatmap</h3>
+              </div>
+              <p class="subtitle">Daily completions and study sessions (15-week view)</p>
+            </div>
+            <div class="heatmap-legend-wrapper">
+              <div class="heatmap-container" id="heatmapContainer"></div>
+              <div class="heatmap-legend">
+                <span>Less</span>
+                <div class="legend-box level-0"></div>
+                <div class="legend-box level-1"></div>
+                <div class="legend-box level-2"></div>
+                <div class="legend-box level-3"></div>
+                <div class="legend-box level-4"></div>
+                <span>More</span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Subject completions -->
+          <div class="chart-card glass subject-stats-card">
+            <div class="chart-header">
+              <div class="header-left">
+                <i class="ri-medal-2-fill"></i>
+                <h3>Quest Mastery</h3>
+              </div>
+              <p class="subtitle">Completed vs. Total tasks per category</p>
+            </div>
+            <div class="subject-progress-list" id="subjectProgressList">
+              <!-- Dynamically populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights & History Grid -->
+        <div class="analytics-insights-history-grid">
+          <!-- Card 1: Productivity Highlights -->
+          <div class="chart-card glass insights-card">
+            <div class="chart-header">
+              <div class="header-left">
+                <i class="ri-lightbulb-flash-fill"></i>
+                <h3>Productivity Highlights</h3>
+              </div>
+            </div>
+            <div class="insights-content">
+              <div class="insight-item">
+                <div class="insight-label-icon">
+                  <i class="ri-calendar-check-line"></i>
+                  <span>Most Productive Day</span>
+                </div>
+                <div class="insight-value" id="mostProductiveDay">Wednesday</div>
+              </div>
+              <div class="insight-item">
+                <div class="insight-label-icon">
+                  <i class="ri-time-line"></i>
+                  <span>Peak Focus Hour</span>
+                </div>
+                <div class="insight-value" id="peakFocusHour">2 PM - 4 PM</div>
+              </div>
+              <div class="insight-item">
+                <div class="insight-label-icon">
+                  <i class="ri-shield-flash-line"></i>
+                  <span>Longest Focus Streak</span>
+                </div>
+                <div class="insight-value" id="longestFocusStreak">8 days</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Focus Session History -->
+          <div class="chart-card glass history-card">
+            <div class="chart-header">
+              <div class="header-left">
+                <i class="ri-history-line"></i>
+                <h3>Focus Session History</h3>
+              </div>
+            </div>
+            <div class="history-list" id="focusHistoryList">
+              <!-- Populated dynamically by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MASTER PROJECTS & SUBTASKS TRACKER -->
+        <!-- ============================================== -->
+        <div class="projects-tracker-section">
+          <div class="vault-header" style="margin-top: 30px; margin-bottom: 20px;">
+            <div class="vault-title-area">
+              <h2><i class="ri-list-check-3"></i> Master Projects & Milestones</h2>
+              <p>Break down your major goals into smaller, manageable subtasks.</p>
+            </div>
+            <button class="add-project-btn" id="addProjectBtn">
+              <i class="ri-add-line"></i> New Project
+            </button>
+          </div>
+
+          <!-- Quick Add Project Form (hidden by default) -->
+          <div class="glass" id="projectFormBody" style="display: none; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+              <input type="text" id="newProjectTitle" placeholder="Project Name (e.g. Finals Prep)" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text);">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+              <button class="toggle-btn" id="cancelProjectBtn" style="padding: 8px 16px;">Cancel</button>
+              <button class="toggle-btn active" id="saveProjectBtn" style="padding: 8px 16px;">Create Project</button>
+            </div>
+          </div>
+
+          <!-- Projects Grid -->
+          <div class="projects-grid" id="projectsGrid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 5: BOOKMARKS MANAGER -->
+      <div id="bookmarks-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnBookmarks">
+        <div class="vault-header">
+          <div class="vault-title-area">
+            <h2><i class="ri-bookmark-3-line"></i> Saved Resources</h2>
+            <p>Your curated collection of useful study links, references, and PDFs.</p>
+          </div>
+          <button class="add-project-btn" id="addBookmarkBtn">
+            <i class="ri-add-line"></i> Add Bookmark
+          </button>
+        </div>
+
+        <div class="asgn-controls-bar">
+          <div class="asgn-search-wrap">
+            <i class="ri-search-line"></i>
+            <input type="text" placeholder="Search bookmarks..." />
+          </div>
+          <div class="filters" style="margin-left: 10px;">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Favorites</button>
+            <button class="filter-btn">Videos</button>
+            <button class="filter-btn">Articles</button>
+          </div>
+        </div>
+
+        <div class="bookmarks-grid">
+          
+          <!-- Static Bookmark Card 1 -->
+          <div class="bookmark-card glass">
+            <div class="bookmark-icon blue">
+              <i class="ri-youtube-fill"></i>
+            </div>
+            <div class="bookmark-content">
+              <h4>Calculus 101 - Limits & Continuity</h4>
+              <p>Professor Leonard's full lecture on Limits.</p>
+              <div class="bookmark-tags">
+                <span class="bookmark-tag">Math</span>
+                <span class="bookmark-tag">Video</span>
+              </div>
+            </div>
+            <div class="bookmark-actions">
+              <button class="pin-btn active"><i class="ri-pushpin-fill"></i></button>
+              <button class="open-btn"><i class="ri-external-link-line"></i></button>
+            </div>
+          </div>
+
+          <!-- Static Bookmark Card 2 -->
+          <div class="bookmark-card glass">
+            <div class="bookmark-icon green">
+              <i class="ri-file-paper-2-line"></i>
+            </div>
+            <div class="bookmark-content">
+              <h4>Physics Cheat Sheet</h4>
+              <p>Formulas for Kinematics and Dynamics.</p>
+              <div class="bookmark-tags">
+                <span class="bookmark-tag">Physics</span>
+                <span class="bookmark-tag">PDF</span>
+              </div>
+            </div>
+            <div class="bookmark-actions">
+              <button class="pin-btn"><i class="ri-pushpin-line"></i></button>
+              <button class="open-btn"><i class="ri-external-link-line"></i></button>
+            </div>
+          </div>
+
+          <!-- Static Bookmark Card 3 -->
+          <div class="bookmark-card glass">
+            <div class="bookmark-icon orange">
+              <i class="ri-article-line"></i>
+            </div>
+            <div class="bookmark-content">
+              <h4>History of the Roman Empire</h4>
+              <p>Comprehensive timeline from Wikipedia.</p>
+              <div class="bookmark-tags">
+                <span class="bookmark-tag">History</span>
+                <span class="bookmark-tag">Article</span>
+              </div>
+            </div>
+            <div class="bookmark-actions">
+              <button class="pin-btn"><i class="ri-pushpin-line"></i></button>
+              <button class="open-btn"><i class="ri-external-link-line"></i></button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 6: ACADEMIC PERFORMANCE -->
+      <div id="performance-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnPerformance">
+        <div class="vault-header">
+          <div class="vault-title-area">
+            <h2><i class="ri-medal-line"></i> Subject Performance</h2>
+            <p>Track your grades and monitor your academic growth.</p>
+          </div>
+          <div class="vault-storage-info" id="overallPerformanceStats">
+            <!-- Average will be shown here -->
+          </div>
+        </div>
+
+        <div class="task-box">
+          <input type="text" id="subjectNameInput" placeholder="Subject Name (e.g. Mathematics)" />
+          <input type="number" id="marksObtainedInput" placeholder="Marks Obtained" />
+          <input type="number" id="totalMarksInput" placeholder="Total Marks" />
+          <button id="addPerformanceBtn">
+            <i class="ri-add-line"></i> Add Subject
+          </button>
+        </div>
+
+        <div class="performance-grid" id="performanceGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- TAB 7: SMART TIMETABLE -->
+      <div id="timetable-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnTimetable">
+        <div class="vault-header">
+          <div class="vault-title-area">
+            <h2><i class="ri-calendar-todo-line"></i> Smart Timetable</h2>
+            <p>Schedule your weekly study sessions and receive automated alerts.</p>
+          </div>
+        </div>
+
+        <div class="task-box timetable-form">
+          <select id="ttDayInput">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+          <input type="text" id="ttSubjectInput" placeholder="Subject Name" />
+          <input type="time" id="ttStartTimeInput" title="Start Time" />
+          <input type="time" id="ttEndTimeInput" title="End Time" />
+          <button id="addTimetableBtn">
+            <i class="ri-add-line"></i> Schedule
+          </button>
+        </div>
+
+        <div class="timetable-grid" id="timetableGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- TAB 8: INTERACTIVE CALENDAR -->
+      <div id="calendar-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnCalendar">
+        <div class="vault-header">
+          <div class="vault-title-area">
+            <h2><i class="ri-calendar-event-line"></i> Event Calendar</h2>
+            <p>Assign date-specific tasks and receive automated reminder notifications.</p>
+          </div>
+        </div>
+
+        <div class="calendar-container glass">
+          <div class="calendar-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="icon-btn" id="prevMonth" aria-label="Previous"><i class="ri-arrow-left-s-line"></i></button>
+              <h3 id="currentMonthYear">Month Year</h3>
+              <button class="icon-btn" id="nextMonth" aria-label="Next"><i class="ri-arrow-right-s-line"></i></button>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:6px;">
+              <button class="view-btn small active" id="calViewMonth">Monthly</button>
+              <button class="view-btn small" id="calViewWeek">Weekly</button>
+            </div>
+          </div>
+          <div class="calendar-weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid">
+            <!-- Days populated by JS -->
+          </div>
+          <div class="calendar-legend" style="padding-top:10px;">
+            <div class="legend-item"><span class="legend-dot task"></span> Tasks</div>
+            <div class="legend-item"><span class="legend-dot exam"></span> Exams</div>
+            <div class="legend-item"><span class="legend-dot focus"></span> Focus Sessions</div>
+            <div class="legend-item"><span class="legend-dot daily"></span> Daily Goals</div>
+          </div>
+        </div>
+
+        <div class="task-box" style="margin-top: 25px; grid-template-columns: 1fr 180px 140px 150px;">
+          <input type="text" id="eventTitleInput" placeholder="Event/Task Title (e.g. Science Project Due)" />
+          <input type="date" id="eventDateInput" title="Select Date" />
+          <input type="time" id="eventTimeInput" title="Select Time" />
+          <button id="addEventBtn">
+            <i class="ri-add-line"></i> Add Event
+          </button>
+        </div>
+      </div>
+
+      <!-- APP FOOTER -->
+      <!-- TAB: MOTIVATION -->
+      <div id="motivation-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnMotivation">
+        <div class="motivation-page">
+          <!-- Hero Section -->
+          <section class="hero" aria-labelledby="hero-heading">
+            <div class="hero__badge">Motivation</div>
+            <h2 id="hero-heading" class="hero__title">Stay Motivated Every Day</h2>
+            <p class="hero__lead">Small consistent steps compound into extraordinary results. Use these prompts, tips, and quotes to build focus, discipline, and momentum for your studies.</p>
+            <ul class="badges badges--productivity" role="list">
+              <li class="badge"><i class="fa fa-sun"></i> Daily Inspiration</li>
+              <li class="badge"><i class="fa fa-bullseye"></i> Focus Boost</li>
+              <li class="badge"><i class="fa fa-smile"></i> Positive Mindset</li>
+            </ul>
+          </section>
+
+          <!-- Quotes Grid -->
+          <section class="quotes" aria-labelledby="quotes-heading">
+            <h3 id="quotes-heading" class="section__title">Motivational Quotes</h3>
+            <div class="quote-grid">
+              <article class="quote-card" aria-labelledby="q1-title">
+                <div class="quote-card__icon"><i class="fa fa-book-open"></i></div>
+                <blockquote class="quote" id="q1-title">"The secret of getting ahead is getting started."</blockquote>
+                <div class="quote-card__meta"><span class="quote-card__author">— Mark Twain</span><span class="quote-card__badge">Study Motivation</span></div>
+              </article>
+              <article class="quote-card" aria-labelledby="q2-title">
+                <div class="quote-card__icon"><i class="fa fa-hourglass-half"></i></div>
+                <blockquote class="quote" id="q2-title">"Discipline is choosing between what you want now and what you want most."</blockquote>
+                <div class="quote-card__meta"><span class="quote-card__author">— Abraham Lincoln</span><span class="quote-card__badge">Discipline</span></div>
+              </article>
+              <article class="quote-card" aria-labelledby="q3-title">
+                <div class="quote-card__icon"><i class="fa fa-rocket"></i></div>
+                <blockquote class="quote" id="q3-title">"Success is the sum of small efforts, repeated day in and day out."</blockquote>
+                <div class="quote-card__meta"><span class="quote-card__author">— Robert Collier</span><span class="quote-card__badge">Success Mindset</span></div>
+              </article>
+              <article class="quote-card" aria-labelledby="q4-title">
+                <div class="quote-card__icon"><i class="fa fa-repeat"></i></div>
+                <blockquote class="quote" id="q4-title">"Small disciplines repeated with consistency every day lead to great achievements."</blockquote>
+                <div class="quote-card__meta"><span class="quote-card__author">— Unknown</span><span class="quote-card__badge">Consistency</span></div>
+              </article>
+              <article class="quote-card" aria-labelledby="q5-title">
+                <div class="quote-card__icon"><i class="fa fa-lightbulb"></i></div>
+                <blockquote class="quote" id="q5-title">"I focus on progress, not perfection. Each session moves me forward."</blockquote>
+                <div class="quote-card__meta"><span class="quote-card__author">— Personal Affirmation</span><span class="quote-card__badge">Productivity</span></div>
+              </article>
+              <article class="quote-card" aria-labelledby="q6-title">
+                <div class="quote-card__icon"><i class="fa fa-brain"></i></div>
+                <blockquote class="quote" id="q6-title">"Turn setbacks into lessons; growth follows intentional reflection."</blockquote>
+                <div class="quote-card__meta"><span class="quote-card__author">— Learning Mindset</span><span class="quote-card__badge">Growth</span></div>
+              </article>
+            </div>
+          </section>
+
+          <!-- Daily Motivation Banner -->
+          <section class="daily-banner" aria-labelledby="daily-heading">
+            <h4 id="daily-heading" class="section__label">Quote of the Day</h4>
+            <div class="daily-banner__inner">
+              <div class="daily-banner__glow" aria-hidden="true"></div>
+              <blockquote class="daily-banner__quote">"Mastery begins with showing up. Do the work today and the future will thank you."</blockquote>
+              <cite class="daily-banner__author">— Elena Ramirez, Academic Coach</cite>
+            </div>
+          </section>
+
+          <!-- Productivity Tips -->
+          <section class="tips" aria-labelledby="tips-heading">
+            <h3 id="tips-heading" class="section__title">Productivity Tips</h3>
+            <div class="tips-grid">
+              <article class="tip-card"><h5 class="tip-card__title">Avoiding Distractions</h5><p class="tip-card__body">Create a dedicated study space, silence notifications, and use focused intervals (25–50 mins) followed by short breaks.</p></article>
+              <article class="tip-card"><h5 class="tip-card__title">Effective Study Methods</h5><p class="tip-card__body">Use active recall and spaced repetition. Teach back concepts to check true understanding.</p></article>
+              <article class="tip-card"><h5 class="tip-card__title">Time Management</h5><p class="tip-card__body">Prioritize tasks with an impact/effort matrix and block peak-focus time for deep work.</p></article>
+              <article class="tip-card"><h5 class="tip-card__title">Focus Improvement</h5><p class="tip-card__body">Train attention with single-task sessions, remove multi-tasking, and practice brief mindfulness before starting.</p></article>
+              <article class="tip-card"><h5 class="tip-card__title">Consistency Habits</h5><p class="tip-card__body">Build small daily rituals (study start routine, review, and reflection) to make progress automatic.</p></article>
+            </div>
+          </section>
+
+          <!-- Achievements -->
+          <section class="achievements" aria-labelledby="achieve-heading">
+            <h3 id="achieve-heading" class="section__title">Achievements</h3>
+            <div class="achievements__grid">
+              <div class="achievement-card"><div class="achievement-card__icon"><i class="fa fa-fire"></i></div><div class="achievement-card__body"><div class="achievement-card__value">12</div><div class="achievement-card__label">Day Study Streak</div></div></div>
+              <div class="achievement-card"><div class="achievement-card__icon"><i class="fa fa-check"></i></div><div class="achievement-card__body"><div class="achievement-card__value">48</div><div class="achievement-card__label">Tasks Completed</div></div></div>
+              <div class="achievement-card"><div class="achievement-card__icon"><i class="fa fa-chart-line"></i></div><div class="achievement-card__body"><div class="achievement-card__value">76%</div><div class="achievement-card__label">Weekly Progress</div></div></div>
+              <div class="achievement-card"><div class="achievement-card__icon"><i class="fa fa-clock"></i></div><div class="achievement-card__body"><div class="achievement-card__value">9.5h</div><div class="achievement-card__label">Focus Hours</div></div></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- TAB: COLLABORATIVE STUDY ENVIRONMENT -->
+      <div id="collaborative-tab" class="tab-content" role="tabpanel" aria-labelledby="tabBtnCollaborative">
+        <div class="collab-section glass" style="margin-bottom: 30px;">
+          <div class="collab-header">
+            <h2><i class="ri-user-add-line"></i> Study Friends</h2>
+            <button class="add-project-btn" id="addFriendBtn"><i class="ri-add-line"></i> Add Friend</button>
+          </div>
+          <div id="addFriendForm" class="task-box glass" style="display: none; margin-bottom: 20px;">
+            <input type="text" id="friendNameInput" placeholder="Enter friend's name or username...">
+            <button class="view-btn active" id="confirmAddFriendBtn">Add Friend</button>
+            <button class="view-btn" id="cancelAddFriendBtn">Cancel</button>
+          </div>
+          <div class="friends-list-grid" id="friendsListGrid"></div>
+        </div>
+        <div class="collab-section glass" style="margin-bottom: 30px;">
+          <div class="collab-header"><h2><i class="ri-team-fill"></i> Study Together Now</h2></div>
+          <div class="collab-study-wrapper">
+            <div class="collab-session-info glass">
+              <div class="session-item"><i class="ri-user-fill"></i><div><p>Your Current Session</p><h4 id="collabSessionUser">Not in session</h4></div></div>
+              <div class="session-item"><i class="ri-users-fill"></i><div><p>Study Partner(s)</p><h4 id="collabSessionPartner">—</h4></div></div>
+              <div class="session-item"><i class="ri-timer-line"></i><div><p>Session Duration</p><h4 id="collabSessionDuration">0 min</h4></div></div>
+            </div>
+            <div class="collab-actions" style="display: flex; gap: 12px; margin-top: 15px;">
+              <button class="view-btn primary" id="startCollabSessionBtn" style="flex: 1;"><i class="ri-play-line"></i> Start Study Session</button>
+              <button class="view-btn" id="stopCollabSessionBtn" style="flex: 1; display: none;"><i class="ri-stop-line"></i> End Session</button>
+              <button class="view-btn" id="inviteFriendBtn" style="flex: 1;"><i class="ri-send-plane-line"></i> Invite Friend</button>
+            </div>
+          </div>
+        </div>
+        <div class="collab-section glass" style="margin-bottom: 30px;">
+          <div class="collab-header">
+            <h2><i class="ri-trophy-line"></i> Productivity Challenges</h2>
+            <button class="add-project-btn" id="createChallengeBtn"><i class="ri-add-line"></i> Create Challenge</button>
+          </div>
+          <div id="createChallengeForm" class="task-box glass" style="display: none; margin-bottom: 20px; grid-template-columns: 1fr 1fr 1fr auto auto;">
+            <input type="text" id="challengeTitleInput" placeholder="Challenge name (e.g., 7-Day Study Sprint)">
+            <select id="challengeTypeSelect">
+              <option value="tasks">Most Tasks Completed</option>
+              <option value="study">Most Study Minutes</option>
+              <option value="score">Highest Daily Score</option>
+              <option value="streak">Longest Streak</option>
+            </select>
+            <input type="number" id="challengeDaysInput" placeholder="Duration (days)" min="1" max="30" value="7">
+            <button class="view-btn active" id="confirmCreateChallengeBtn">Create</button>
+            <button class="view-btn" id="cancelChallengeBtn">Cancel</button>
+          </div>
+          <div class="challenges-grid" id="challengesGrid"></div>
+        </div>
+        <div class="collab-section glass">
+          <div class="collab-header">
+            <h2><i class="ri-medal-fill"></i> Live Leaderboard</h2>
+            <button class="view-btn" id="refreshLeaderboardBtn"><i class="ri-refresh-line"></i> Refresh</button>
+          </div>
+          <div class="leaderboard-wrapper">
+            <div id="collabLeaderboard" class="collab-leaderboard-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
 
   </main>
 
-  <footer class="site-footer">
-    <nav aria-label="Footer navigation">
-      <a href="#taskInput">Add task</a>
-      <a href="#taskList">View tasks</a>
-      <a href="privacy.html">Privacy Policy</a>
-      <a href="terms.html">Terms of Service</a>
-      <a href="#main-content">Back to top</a>
-    </nav>
-    <p>Accessible study tracking with keyboard support and semantic structure.</p>
-    <p>&copy; 2026 Study Task Tracker</p>
-  </footer>
+  <!-- MOBILE BOTTOM NAVIGATION DOCK -->
+  <div class="mobile-bottom-dock glass" role="tablist">
+    <button class="dock-btn active" id="dockBtnQuests" data-tab="quests" role="tab" aria-selected="true" aria-controls="quests-tab" aria-label="Open Quests workspace">
+      <i class="ri-checkbox-multiple-line"></i>
+      <span>Quests</span>
+    </button>
 
+    <button class="dock-btn" id="dockBtnAssignmentsMobile" data-tab="assignments" role="tab" aria-selected="false" aria-controls="assignments-tab" aria-label="Open Assignment Tracker">
+      <i class="ri-calendar-check-line"></i>
+      <span>Assign</span>
+    </button>
+    
+    <button class="dock-btn-quick" id="mobileQuickAddBtn" aria-label="Quick Add Quest">
+      <i class="ri-add-line"></i>
+    </button>
+    
+    <button class="dock-btn" id="dockBtnVaultMobile" data-tab="vault" role="tab" aria-selected="false" aria-controls="vault-tab" aria-label="Open Files Vault">
+      <i class="ri-folder-open-line"></i>
+      <span>Vault</span>
+    </button>
+    
+    <button class="dock-btn" id="dockBtnAnalytics" data-tab="analytics" role="tab" aria-selected="false" aria-controls="analytics-tab" aria-label="Open Stats dashboard">
+      <i class="ri-bar-chart-2-line"></i>
+      <span>Stats</span>
+    </button>
+
+    <button class="dock-btn" id="dockBtnPerformanceMobile" data-tab="performance" role="tab" aria-selected="false" aria-controls="performance-tab" aria-label="Open Performance Tracker">
+      <i class="ri-medal-line"></i>
+      <span>Perf</span>
+    </button>
+
+    <button class="dock-btn" id="dockBtnTimetableMobile" data-tab="timetable" role="tab" aria-selected="false" aria-controls="timetable-tab" aria-label="Open Timetable">
+      <i class="ri-calendar-todo-line"></i>
+      <span>Time</span>
+    </button>
+
+    <button class="dock-btn" id="dockBtnCalendarMobile" data-tab="calendar" role="tab" aria-selected="false" aria-controls="calendar-tab" aria-label="Open Calendar">
+      <i class="ri-calendar-event-line"></i>
+      <span>Cal</span>
+    </button>
+    
+    <button class="dock-btn" id="dockBtnBookmarksMobile" data-tab="bookmarks" role="tab" aria-selected="false" aria-controls="bookmarks-tab" aria-label="Open Bookmarks">
+      <i class="ri-bookmark-3-line"></i>
+      <span>Marks</span>
+    </button>
+  </div>
+
+  <!-- MOBILE QUICK ADD DRAWER -->
+  <div class="mobile-add-drawer-overlay" id="mobileAddDrawerOverlay"></div>
+  <div class="mobile-add-drawer glass" id="mobileAddDrawer">
+    <div class="drawer-header">
+      <div class="drawer-bar"></div>
+      <h3>Quick Add Quest</h3>
+      <button id="closeDrawerBtn" aria-label="Close form"><i class="ri-close-line"></i></button>
+    </div>
+    
+    <div class="drawer-body">
+      <input
+        type="text"
+        id="mobileTaskInput"
+        placeholder="What needs to be done?"
+        aria-label="New task name"
+      />
+
+      <select id="mobileCategorySelect" aria-label="Task category">
+        <option value="Theory">📘 Theory</option>
+        <option value="Practical">🧪 Practical</option>
+        <option value="Assignment">📝 Assignment</option>
+        <option value="Revision">📖 Revision</option>
+      </select>
+
+      <select id="mobilePrioritySelect" aria-label="Task priority">
+
+        <option value="High">🚩 High Priority</option>
+        <option value="Medium" selected>🔸 Medium Priority</option>
+        <option value="Low">🔹 Low Priority</option>
+
+        <option value="High">🔴 High Priority</option>
+        <option value="Medium" selected>🟡 Medium Priority</option>
+        <option value="Low">🟢 Low Priority</option>
+      </select>
+
+      <button id="mobileAddTaskBtn">
+        <i class="ri-add-line"></i>Create Quest
+      </button>
+    </div>
+  </div>
+
+  <!-- CONFETTI DUST EFFECT CONTAINER -->
+  <div class="confetti-container" id="confettiContainer"></div>
+
+  <!-- LEVEL UP POPUP WIDGET -->
+  <div class="popup-overlay" id="levelUpPopupOverlay"></div>
+  <div class="popup-card glass level-up-card" id="levelUpPopup">
+    <div class="popup-glow"></div>
+    <div class="popup-badge">🏆</div>
+    <h2>LEVEL UP!</h2>
+    <p class="popup-sub">You have reached <span id="popupLevelText">Level 4</span>!</p>
+    <div class="popup-rewards-list">
+      <div class="reward-item">
+        <i class="ri-money-dollar-circle-fill"></i>
+        <span>+50 Coins Reward</span>
+      </div>
+      <div class="reward-item">
+        <i class="ri-sparkling-fill"></i>
+        <span>+100 XP Bonus</span>
+      </div>
+    </div>
+    <button class="popup-claim-btn" id="claimLevelBtn">Claim Rewards ✨</button>
+  </div>
+
+  <!-- CUMULATIVE FOCUS MILESTONE POPUP WIDGET -->
+  <div class="popup-overlay" id="milestonePopupOverlay"></div>
+  <div class="popup-card glass milestone-card" id="milestonePopup">
+    <div class="popup-glow"></div>
+    <div class="popup-badge">🚀</div>
+    <h2>MILESTONE UNLOCKED!</h2>
+    <p class="popup-sub" id="milestoneTitle">Focus Elite</p>
+    <p class="popup-desc" id="milestoneDesc">Accumulated 60 minutes of cumulative study time!</p>
+    <div class="popup-rewards-list">
+      <div class="reward-item">
+        <i class="ri-medal-fill"></i>
+        <span>+100 Coins Reward</span>
+      </div>
+    </div>
+    <button class="popup-claim-btn" id="claimMilestoneBtn">Awesome!</button>
+  </div>
+
+
+
+
+  <!-- ACHIEVEMENT DETAILS MODAL -->
+  <div class="popup-overlay" id="achievementModalOverlay"></div>
+  <div class="popup-card glass achievement-details-card" id="achievementModal">
+    <button class="close-modal-btn" id="closeAchievementModalBtn" aria-label="Close modal"><i class="ri-close-line"></i></button>
+    <div class="modal-glow" id="modalGlow"></div>
+    <div class="modal-badge-wrapper">
+      <div class="modal-badge" id="modalBadgeIcon">🎓</div>
+      <div class="modal-rarity-pill" id="modalRarityLabel">Common</div>
+    </div>
+    <h2 id="modalBadgeTitle">Novice Scholar</h2>
+    <p class="modal-desc" id="modalBadgeDesc">Complete your first quest!</p>
+    
+    <div class="modal-progress-section">
+      <div class="modal-progress-header">
+        <span>Quest Progress</span>
+        <span id="modalProgressText">0 / 1</span>
+      </div>
+      <div class="modal-progress-bar">
+        <div class="modal-progress-fill" id="modalProgressFill"></div>
+      </div>
+    </div>
+    
+    <div class="modal-rewards-section">
+      <div class="reward-item">
+        <i class="ri-money-dollar-circle-fill"></i>
+        <span id="modalRewardText">+20 Coins Reward</span>
+      </div>
+    </div>
+    
+    <div class="modal-status-section" id="modalStatusText">
+      Status: Locked
+    </div>
+  </div>
+
+
+
+  <!-- FLOATING ACHIEVEMENT TOAST ALERT -->
+  <div class="achievement-toast glass" id="achievementToast">
+    <div class="toast-icon">🏆</div>
+    <div class="toast-content">
+      <h4>Achievement Unlocked!</h4>
+      <p id="toastAchievementName">Focus Master</p>
+    </div>
+  </div>
+
+  <!-- PROFILE EDIT MODAL -->
+  <div class="popup-overlay" id="profileModalOverlay"></div>
+  <div class="popup-card glass profile-modal" id="profileModal">
+    <button class="close-modal-btn" id="closeProfileModalBtn" aria-label="Close edit profile modal"><i class="ri-close-line"></i></button>
+    <div class="popup-glow" style="background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, rgba(0,0,0,0) 70%);"></div>
+    <h2>Edit Profile</h2>
+    <p class="popup-sub">Customize your details</p>
+    
+    <div class="profile-form">
+      <div class="form-group">
+        <label for="profileInputName">Name</label>
+        <input type="text" id="profileInputName" placeholder="Enter your name" />
+      </div>
+
+      <div class="form-group">
+        <label>Choose an avatar</label>
+        <div class="avatar-options" id="avatarOptions">
+          <img src="male_avatar.svg" alt="Male avatar" class="avatar-option" data-src="male_avatar.svg" />
+          <img src="female_avatar.svg" alt="Female avatar" class="avatar-option" data-src="female_avatar.svg" />
+          <img src="avatar_blue.svg" alt="Blue avatar" class="avatar-option" data-src="avatar_blue.svg" />
+          <img src="avatar_green.svg" alt="Green avatar" class="avatar-option" data-src="avatar_green.svg" />
+          <img src="avatar_orange.svg" alt="Orange avatar" class="avatar-option" data-src="avatar_orange.svg" />
+          <img src="avatar_purple.svg" alt="Purple avatar" class="avatar-option" data-src="avatar_purple.svg" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="profileInputPhoto">Or upload a photo (Max 1MB)</label>
+        <input type="file" id="profileInputPhoto" accept="image/*" />
+      </div>
+      
+      <div class="form-group">
+        <label for="profileInputClass">Class / Grade</label>
+        <input type="text" id="profileInputClass" placeholder="e.g. Class 10" />
+      </div>
+      
+      <div class="form-group dropdown-group">
+        <label for="profileInputGender">Gender</label>
+        <select id="profileInputGender">
+          <option value="Male">Male ♂️</option>
+          <option value="Female">Female ♀️</option>
+        </select>
+      </div>
+      
+      <div class="form-group dropdown-group">
+        <label for="profileInputTitle">Character Title</label>
+        <select id="profileInputTitle">
+          <option value="Focus Warrior ⚔️">Focus Warrior ⚔️</option>
+          <option value="Study Ninja 🥷">Study Ninja 🥷</option>
+          <option value="Academic Ace 🃏">Academic Ace 🃏</option>
+          <option value="Logic Legend 🧠">Logic Legend 🧠</option>
+          <option value="Quest Master 🏆">Quest Master 🏆</option>
+          <option value="Midnight Scholar 🌙">Midnight Scholar 🌙</option>
+        </select>
+      </div>
+      
+      <button class="popup-claim-btn" id="saveProfileBtn">Save Profile ✨</button>
+    </div>
+  </div>
+
+  <!-- ACCESSIBILITY ANNOUNCER -->
+  <div id="srAnnouncement" class="sr-only" aria-live="polite"></div>
+
+  <!-- BREAK REMINDER TOAST POPUP -->
+  <div class="break-toast" id="breakToast" role="alert" aria-live="assertive">
+    <div class="break-toast-inner">
+      <div class="break-toast-emoji" id="breakToastEmoji">☕</div>
+      <div class="break-toast-body">
+        <h4 class="break-toast-title">Time for a Break!</h4>
+        <p class="break-toast-msg" id="breakToastMsg">You've been studying for 25 minutes. Step away, stretch, and hydrate!</p>
+      </div>
+      <button class="break-toast-close" id="breakToastClose" aria-label="Dismiss break reminder">
+        <i class="ri-close-line"></i>
+      </button>
+    </div>
+    <div class="break-toast-progress" id="breakToastProgress"></div>
+  </div>
+
+  <!-- ASSIGNMENT DEADLINE TOAST -->
+  <div class="asgn-deadline-toast" id="asgnDeadlineToast" role="alert" aria-live="assertive">
+    <div class="asgn-dl-toast-inner">
+      <div class="asgn-dl-icon"><i class="ri-alarm-warning-fill"></i></div>
+      <div class="asgn-dl-body">
+        <h4 class="asgn-dl-title" id="asgnDlToastTitle">Assignment Due Soon!</h4>
+        <p class="asgn-dl-msg" id="asgnDlToastMsg">Math Homework is due in 2 hours.</p>
+      </div>
+      <button class="asgn-dl-close" id="asgnDlToastClose" aria-label="Dismiss deadline reminder"><i class="ri-close-line"></i></button>
+    </div>
+    <div class="asgn-dl-progress" id="asgnDlProgress"></div>
+  </div>
+
+
+  <button class="fixed-open-study-btn" id="openStudyTogetherFab" type="button">
+    <i class="ri-team-line"></i> Open Study Together
+  </button>
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
   <script src="script.js"></script>
+  <script src="toast.js"></script>
+  <!-- Minimal Timetable Manager -->
+  <section id="timetable-section" class="card" style="margin:16px;">
+    <h2 style="margin:0 0 8px 0;">Timetable</h2>
+    <div class="timetable-form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+      <input id="ttSubjectInput" placeholder="Subject (e.g., Math)" style="flex:1;min-width:160px;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);" />
+      <select id="ttDaySelect" style="padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);">
+        <option value="mon">Mon</option>
+        <option value="tue">Tue</option>
+        <option value="wed">Wed</option>
+        <option value="thu">Thu</option>
+        <option value="fri">Fri</option>
+        <option value="sat">Sat</option>
+        <option value="sun">Sun</option>
+      </select>
+      <input id="ttStartInput" type="time" style="padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);" />
+      <input id="ttEndInput" type="time" style="padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);" />
+      <button id="ttAddBtn" class="btn">Add</button>
+    </div>
+    <div id="timetableContainer" class="timetable-grid" aria-live="polite"></div>
+  </section>
+  <script src="collaborative.js"></script>
+
 </body>
 </html>
