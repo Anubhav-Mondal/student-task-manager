@@ -1,3 +1,4 @@
+"use strict";
 /**
  * storage.js — Unified versioned localStorage contract for TaskQuest
  *
